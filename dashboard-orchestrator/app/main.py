@@ -8,7 +8,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from .database import init_db
-from .models import ApprovalRequest, JobCreate, JobRunRequest
+from .models import ApprovalRequest, JobCreate, JobRunRequest, RunCreate, SelectRunRequest, SessionCreate, TaskCreate
 from . import repository as repo
 from .runner import approve_and_continue, start_job
 
@@ -28,6 +28,7 @@ STATIC_DIR = BASE_DIR / "static"
 @app.on_event("startup")
 def on_startup() -> None:
     init_db()
+    repo.seed_v2_catalog()
 
 
 @app.get("/")
@@ -86,3 +87,96 @@ def api_approve_job(job_id: int, payload: ApprovalRequest) -> dict:
     if not ok:
         raise HTTPException(status_code=404, detail="Job not found")
     return {"ok": True, "approved": payload.approved}
+
+
+@app.get("/api/v2/providers")
+def api_v2_list_providers() -> list[dict]:
+    return repo.list_providers()
+
+
+@app.get("/api/v2/models")
+def api_v2_list_models() -> list[dict]:
+    return repo.list_models()
+
+
+@app.get("/api/v2/metrics/summary")
+def api_v2_metrics_summary() -> dict:
+    return repo.get_metrics_summary()
+
+
+@app.get("/api/v2/sessions")
+def api_v2_list_sessions() -> list[dict]:
+    return repo.list_sessions()
+
+
+@app.post("/api/v2/sessions")
+def api_v2_create_session(payload: SessionCreate) -> dict:
+    session_id = repo.create_session(payload.model_dump())
+    session = repo.get_session(session_id)
+    assert session is not None
+    return session
+
+
+@app.get("/api/v2/sessions/{session_id}")
+def api_v2_get_session(session_id: int) -> dict:
+    session = repo.get_session(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return session
+
+
+@app.get("/api/v2/tasks")
+def api_v2_list_tasks(session_id: int | None = None) -> list[dict]:
+    return repo.list_tasks(session_id=session_id)
+
+
+@app.post("/api/v2/tasks")
+def api_v2_create_task(payload: TaskCreate) -> dict:
+    session = repo.get_session(payload.session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    task_id = repo.create_task(payload.model_dump())
+    task = repo.get_task(task_id)
+    assert task is not None
+    return task
+
+
+@app.get("/api/v2/tasks/{task_id}")
+def api_v2_get_task(task_id: int) -> dict:
+    task = repo.get_task(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return task
+
+
+@app.get("/api/v2/tasks/{task_id}/runs")
+def api_v2_list_runs(task_id: int) -> list[dict]:
+    task = repo.get_task(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return repo.list_runs(task_id)
+
+
+@app.post("/api/v2/tasks/{task_id}/runs")
+def api_v2_create_run(task_id: int, payload: RunCreate) -> dict:
+    task = repo.get_task(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    run_id = repo.create_run(task_id, payload.model_dump())
+    task = repo.get_task(task_id)
+    assert task is not None
+    return {"run_id": run_id, "task": task}
+
+
+@app.post("/api/v2/tasks/{task_id}/select-run")
+def api_v2_select_run(task_id: int, payload: SelectRunRequest) -> dict:
+    task = repo.get_task(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    run_ids = {run["id"] for run in task["runs"]}
+    if payload.run_id not in run_ids:
+        raise HTTPException(status_code=404, detail="Run not found for task")
+    repo.select_run(task_id, payload.run_id)
+    task = repo.get_task(task_id)
+    assert task is not None
+    return task
