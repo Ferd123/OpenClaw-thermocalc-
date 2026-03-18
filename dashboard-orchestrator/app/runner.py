@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import shutil
 import subprocess
 import threading
@@ -22,14 +23,49 @@ class AgentRunner:
             try:
                 if agent == "gemini":
                     proc = subprocess.run([cli, "-p", combined_prompt], capture_output=True, text=True, timeout=180)
+                elif agent == "codex":
+                    proc = subprocess.run([cli, "exec", "--skip-git-repo-check", combined_prompt], capture_output=True, text=True, timeout=300)
                 else:
                     proc = subprocess.run([cli, combined_prompt], capture_output=True, text=True, timeout=180)
-                text = (proc.stdout or proc.stderr).strip()
+
+                stdout = (proc.stdout or "").strip()
+                stderr = (proc.stderr or "").strip()
+                text = stdout or stderr
+
+                if proc.returncode != 0:
+                    raise RuntimeError(f"{agent} exited with code {proc.returncode}: {text or 'no output'}")
+
+                if agent == "codex":
+                    parsed = _extract_codex_text(stdout)
+                    if parsed:
+                        return parsed
+                    if "stdout is not a terminal" in stderr.lower():
+                        raise RuntimeError("codex requires a terminal/pty in the current configuration")
+
+                if "stdout is not a terminal" in text.lower():
+                    raise RuntimeError(text)
+
                 return text or f"{agent} executed with no textual output"
             except Exception as exc:
-                return f"[{agent} CLI fallback error] {exc}"
+                raise RuntimeError(f"{agent} runner error: {exc}") from exc
         stamp = datetime.now(timezone.utc).isoformat()
         return f"[{stamp}] Mock {agent} result\nPrompt: {prompt}\n\nContext:\n{context or '(none)'}"
+
+
+def _extract_codex_text(stdout: str) -> str:
+    stdout = (stdout or "").strip()
+    if not stdout:
+        return ""
+    try:
+        data = json.loads(stdout)
+        if isinstance(data, dict):
+            for key in ("output", "text", "result", "content"):
+                value = data.get(key)
+                if isinstance(value, str) and value.strip():
+                    return value.strip()
+        return stdout
+    except json.JSONDecodeError:
+        return stdout
 
 
 runner = AgentRunner()

@@ -3,6 +3,7 @@ const detailEl = document.getElementById('detail');
 const form = document.getElementById('job-form');
 const refreshBtn = document.getElementById('refresh-btn');
 let selectedJobId = null;
+let openDetailPanels = new Set();
 
 async function api(path, options = {}) {
   const res = await fetch(path, {
@@ -34,11 +35,32 @@ function escapeHtml(text = '') {
   return text.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+function captureOpenPanels() {
+  openDetailPanels = new Set(
+    [...detailEl.querySelectorAll('details[data-panel-key]')]
+      .filter((el) => el.open)
+      .map((el) => el.dataset.panelKey)
+  );
+}
+
+function bindDetailPanelPersistence() {
+  detailEl.querySelectorAll('details[data-panel-key]').forEach((el) => {
+    if (openDetailPanels.has(el.dataset.panelKey)) {
+      el.open = true;
+    }
+    el.addEventListener('toggle', () => {
+      if (el.open) openDetailPanels.add(el.dataset.panelKey);
+      else openDetailPanels.delete(el.dataset.panelKey);
+    });
+  });
+}
+
 async function loadDetail() {
   if (!selectedJobId) {
     detailEl.innerHTML = '<div class="muted">Select a job.</div>';
     return;
   }
+  captureOpenPanels();
   const job = await api(`/api/jobs/${selectedJobId}`);
   detailEl.innerHTML = `
     <h3>${escapeHtml(job.title)} <span class="pill">${job.status}</span></h3>
@@ -51,8 +73,8 @@ async function loadDetail() {
     ${job.steps.map(step => `
       <div class="step">
         <div><strong>${step.step_order}. ${escapeHtml(step.name)}</strong> — ${step.agent} — <span class="pill">${step.status}</span></div>
-        <details><summary>Prompt</summary><pre>${escapeHtml(step.prompt)}</pre></details>
-        <details><summary>Output</summary><pre>${escapeHtml(step.output || '')}</pre></details>
+        <details data-panel-key="step-${step.step_order}-prompt"><summary>Prompt</summary><pre>${escapeHtml(step.prompt)}</pre></details>
+        <details data-panel-key="step-${step.step_order}-output"><summary>Output</summary><pre>${escapeHtml(step.output || '')}</pre></details>
       </div>
     `).join('')}
     <h4>Logs</h4>
@@ -60,6 +82,7 @@ async function loadDetail() {
     <h4>Final result</h4>
     <pre>${escapeHtml(job.final_result || '')}</pre>
   `;
+  bindDetailPanelPersistence();
 }
 
 async function runJob(id) {
