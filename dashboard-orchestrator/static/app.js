@@ -2,6 +2,8 @@ const jobsEl = document.getElementById('jobs');
 const detailEl = document.getElementById('detail');
 const form = document.getElementById('job-form');
 const refreshBtn = document.getElementById('refresh-btn');
+const helloBtn = document.getElementById('hello-btn');
+const helloDisplayEl = document.getElementById('hello-display');
 let selectedJobId = null;
 let openDetailPanels = new Set();
 
@@ -97,6 +99,11 @@ async function approveJob(id, approved) {
   setTimeout(loadDetail, 500);
 }
 
+async function loadHelloMessage() {
+  const data = await api('/api/hello');
+  helloDisplayEl.textContent = data.message;
+}
+
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
   const data = {
@@ -118,6 +125,10 @@ form.addEventListener('submit', async (e) => {
 refreshBtn.addEventListener('click', async () => {
   await loadJobs();
   await loadDetail();
+});
+
+helloBtn.addEventListener('click', async () => {
+  await loadHelloMessage();
 });
 
 setInterval(async () => {

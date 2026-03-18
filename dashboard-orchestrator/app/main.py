@@ -43,6 +43,11 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
+@app.get("/api/hello")
+def api_hello() -> dict[str, str]:
+    return {"message": "Hello from the Dashboard Orchestrator!"}
+
+
 @app.get("/api/jobs")
 def api_list_jobs() -> list[dict]:
     return repo.list_jobs()

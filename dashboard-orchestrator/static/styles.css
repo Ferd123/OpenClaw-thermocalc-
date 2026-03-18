@@ -15,3 +15,5 @@ pre { white-space: pre-wrap; word-break: break-word; }
 .actions button { width: auto; }
 .checkbox { display: flex; gap: 8px; align-items: center; }
 .checkbox input { width: auto; margin: 0; }
+.hello-section { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.hello-section button { width: auto; margin: 0; }
