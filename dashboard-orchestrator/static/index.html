@@ -7,42 +7,206 @@
   <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body>
-  <div class="container">
-    <aside class="sidebar">
-      <h2>New 2-step job</h2>
-      <form id="job-form">
-        <label>Title<input name="title" value="Gemini plans, Codex implements" required /></label>
-        <label>Description<textarea name="description">Simple sequential orchestration demo.</textarea></label>
-        <label class="checkbox"><input type="checkbox" name="requires_approval" /> Require approval before step 2</label>
-
-        <h3>Step 1</h3>
-        <label>Name<input name="step1_name" value="Plan task" required /></label>
-        <label>Agent<select name="step1_agent"><option value="gemini">gemini</option><option value="codex">codex</option></select></label>
-        <label>Prompt<textarea name="step1_prompt" required>Create a concise implementation plan for a hello-world feature.</textarea></label>
-
-        <h3>Step 2</h3>
-        <label>Name<input name="step2_name" value="Implement task" required /></label>
-        <label>Agent<select name="step2_agent"><option value="codex">codex</option><option value="gemini">gemini</option></select></label>
-        <label>Prompt<textarea name="step2_prompt" required>Implement the requested feature using the previous plan as context.</textarea></label>
-
-        <button type="submit">Create job</button>
-      </form>
-      <hr />
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <h2>Jobs</h2>
-        <button id="refresh-btn" style="width:auto;">Refresh</button>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <h1>Dashboard AI Orchestrator</h1>
+        <p class="muted">OpenClaw + Gemini + OpenAI · sessions / tasks / runs / metrics</p>
       </div>
-      <div id="jobs"></div>
-    </aside>
-    <main class="content">
-      <h1>Dashboard Orchestrator</h1>
-      <p class="muted">FastAPI + SQLite MVP for two-step sequential jobs with optional approval gate before step 2.</p>
-      <section class="hello-section">
+      <div class="topbar-actions">
         <button id="hello-btn" type="button">Say Hello</button>
         <span id="hello-display" class="muted"></span>
-      </section>
-      <section id="detail"></section>
-    </main>
+      </div>
+    </header>
+
+    <nav class="tabbar">
+      <button class="tab-button active" data-tab="v2">Frontend v2</button>
+      <button class="tab-button" data-tab="legacy">Legacy jobs</button>
+    </nav>
+
+    <section id="tab-v2" class="tab-panel active">
+      <div class="container-v2">
+        <aside class="sidebar">
+          <section class="panel">
+            <div class="section-header">
+              <h2>New Session</h2>
+            </div>
+            <form id="session-form">
+              <label>Title<input name="title" value="RTD analysis" required /></label>
+              <label>Work mode
+                <select name="work_mode">
+                  <option value="research">research</option>
+                  <option value="coding">coding</option>
+                  <option value="chat">chat</option>
+                  <option value="comparison">comparison</option>
+                  <option value="ops">ops</option>
+                </select>
+              </label>
+              <label>Output mode
+                <select name="output_mode">
+                  <option value="summary">summary</option>
+                  <option value="chat">chat</option>
+                  <option value="report">report</option>
+                  <option value="code">code</option>
+                </select>
+              </label>
+              <label>Default model<input name="active_model" value="gemini/gemini-2.5-pro" /></label>
+              <label>Context refs (comma separated)<input name="context_refs" value="paper.pdf,csv-data.csv" /></label>
+              <button type="submit">Create session</button>
+            </form>
+          </section>
+
+          <section class="panel">
+            <div class="section-header">
+              <h2>Sessions</h2>
+              <button id="refresh-v2-btn" type="button" class="ghost">Refresh</button>
+            </div>
+            <div id="sessions-list"></div>
+          </section>
+
+          <section class="panel">
+            <div class="section-header">
+              <h2>Providers</h2>
+            </div>
+            <div id="providers-list"></div>
+          </section>
+
+          <section class="panel">
+            <div class="section-header">
+              <h2>Models</h2>
+            </div>
+            <div id="models-list"></div>
+          </section>
+        </aside>
+
+        <main class="content-v2">
+          <section class="panel">
+            <div class="section-header">
+              <h2>Metrics</h2>
+            </div>
+            <div id="metrics-summary" class="stats-grid"></div>
+          </section>
+
+          <section class="panel">
+            <div class="section-header">
+              <h2>Session detail</h2>
+            </div>
+            <div id="session-detail" class="muted">Select a session.</div>
+          </section>
+
+          <section class="panel">
+            <div class="section-header">
+              <h2>New Task</h2>
+            </div>
+            <form id="task-form">
+              <label>Title<input name="title" value="Summarize methodology" required /></label>
+              <label>Type
+                <select name="type">
+                  <option value="analysis">analysis</option>
+                  <option value="code">code</option>
+                  <option value="summary">summary</option>
+                  <option value="comparison">comparison</option>
+                  <option value="general">general</option>
+                </select>
+              </label>
+              <label>Input<textarea name="input" required>Summarize the methodology in technical language.</textarea></label>
+              <label>Tags (comma separated)<input name="tags" value="#paper,#compare" /></label>
+              <label>Routing strategy
+                <select name="routing_strategy">
+                  <option value="automatic">automatic</option>
+                  <option value="manual">manual</option>
+                  <option value="compare">compare</option>
+                </select>
+              </label>
+              <label>Requested models (comma separated)<input name="requested_models" value="gemini/gemini-2.5-pro,openai/gpt-4o" /></label>
+              <label class="checkbox"><input type="checkbox" name="approval_required" /> Approval required</label>
+              <button type="submit">Create task</button>
+            </form>
+          </section>
+
+          <section class="panel task-layout">
+            <div>
+              <div class="section-header">
+                <h2>Tasks</h2>
+              </div>
+              <div id="tasks-list"></div>
+            </div>
+            <div>
+              <div class="section-header">
+                <h2>Task detail</h2>
+              </div>
+              <div id="task-detail" class="muted">Select a task.</div>
+            </div>
+            <div>
+              <div class="section-header">
+                <h2>New Run</h2>
+              </div>
+              <form id="run-form">
+                <label>Provider
+                  <select name="provider">
+                    <option value="gemini">gemini</option>
+                    <option value="openai">openai</option>
+                  </select>
+                </label>
+                <label>Model<input name="model" value="gemini/gemini-2.5-pro" required /></label>
+                <label>Prompt snapshot<textarea name="prompt_snapshot">Manual run prompt snapshot.</textarea></label>
+                <label>Status
+                  <select name="status">
+                    <option value="queued">queued</option>
+                    <option value="running">running</option>
+                    <option value="success">success</option>
+                    <option value="error">error</option>
+                  </select>
+                </label>
+                <label>Output<textarea name="output">Run output...</textarea></label>
+                <label>Error message<input name="error_message" /></label>
+                <label>Latency ms<input name="latency_ms" type="number" value="1200" /></label>
+                <label>Cost<input name="cost" type="number" step="0.001" value="0.02" /></label>
+                <label>Tokens in<input name="tokens_in" type="number" value="800" /></label>
+                <label>Tokens out<input name="tokens_out" type="number" value="500" /></label>
+                <label>Score<input name="score" type="number" step="0.1" /></label>
+                <button type="submit">Create run</button>
+              </form>
+            </div>
+          </section>
+        </main>
+      </div>
+    </section>
+
+    <section id="tab-legacy" class="tab-panel">
+      <div class="container">
+        <aside class="sidebar">
+          <h2>New 2-step job</h2>
+          <form id="job-form">
+            <label>Title<input name="title" value="Gemini plans, Codex implements" required /></label>
+            <label>Description<textarea name="description">Simple sequential orchestration demo.</textarea></label>
+            <label class="checkbox"><input type="checkbox" name="requires_approval" /> Require approval before step 2</label>
+
+            <h3>Step 1</h3>
+            <label>Name<input name="step1_name" value="Plan task" required /></label>
+            <label>Agent<select name="step1_agent"><option value="gemini">gemini</option><option value="codex">codex</option></select></label>
+            <label>Prompt<textarea name="step1_prompt" required>Create a concise implementation plan for a hello-world feature.</textarea></label>
+
+            <h3>Step 2</h3>
+            <label>Name<input name="step2_name" value="Implement task" required /></label>
+            <label>Agent<select name="step2_agent"><option value="codex">codex</option><option value="gemini">gemini</option></select></label>
+            <label>Prompt<textarea name="step2_prompt" required>Implement the requested feature using the previous plan as context.</textarea></label>
+
+            <button type="submit">Create job</button>
+          </form>
+          <hr />
+          <div class="section-header">
+            <h2>Jobs</h2>
+            <button id="refresh-btn" type="button" class="ghost">Refresh</button>
+          </div>
+          <div id="jobs"></div>
+        </aside>
+        <main class="content">
+          <h2>Legacy job detail</h2>
+          <section id="detail"></section>
+        </main>
+      </div>
+    </section>
   </div>
   <script src="/static/app.js"></script>
 </body>

@@ -1,19 +1,63 @@
 body { font-family: Arial, sans-serif; margin: 0; background: #0f172a; color: #e2e8f0; }
-.container { display: grid; grid-template-columns: 380px 1fr; min-height: 100vh; }
-.sidebar, .content { padding: 20px; }
-.sidebar { background: #111827; border-right: 1px solid #334155; overflow-y: auto; }
-.content { overflow-y: auto; }
 input, textarea, select, button { width: 100%; margin-top: 6px; margin-bottom: 12px; padding: 10px; border-radius: 8px; border: 1px solid #475569; background: #1e293b; color: #e2e8f0; box-sizing: border-box; }
 button { cursor: pointer; background: #2563eb; border: none; }
 button.danger { background: #dc2626; }
-.job-card, .step, pre, details { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
-.job-card.active { border-color: #60a5fa; }
+button.ghost { width: auto; margin: 0; background: #334155; }
 pre { white-space: pre-wrap; word-break: break-word; }
+details, pre, .list-card, .step, .detail-card, .panel, .stat-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; }
 .muted { color: #94a3b8; }
 .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #334155; font-size: 12px; }
-.actions { display: flex; gap: 10px; margin-bottom: 12px; }
-.actions button { width: auto; }
 .checkbox { display: flex; gap: 8px; align-items: center; }
 .checkbox input { width: auto; margin: 0; }
-.hello-section { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
-.hello-section button { width: auto; margin: 0; }
+.actions { display: flex; gap: 10px; margin-bottom: 12px; }
+.actions button { width: auto; }
+
+.app-shell { min-height: 100vh; }
+.topbar { display: flex; justify-content: space-between; gap: 20px; align-items: center; padding: 20px; border-bottom: 1px solid #334155; background: #111827; }
+.topbar h1 { margin: 0 0 6px; }
+.topbar-actions { display: flex; align-items: center; gap: 12px; }
+.topbar-actions button { width: auto; margin: 0; }
+.tabbar { display: flex; gap: 8px; padding: 16px 20px 0; }
+.tab-button { width: auto; margin: 0; background: #1e293b; border: 1px solid #334155; }
+.tab-button.active { background: #2563eb; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+.container, .container-v2 { display: grid; min-height: calc(100vh - 140px); }
+.container { grid-template-columns: 380px 1fr; }
+.container-v2 { grid-template-columns: 360px 1fr; }
+.sidebar, .content, .content-v2 { padding: 20px; }
+.sidebar { background: #111827; border-right: 1px solid #334155; overflow-y: auto; }
+.content, .content-v2 { overflow-y: auto; }
+.panel { padding: 16px; margin-bottom: 16px; }
+.section-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
+.section-header h2, .section-header h3 { margin: 0; }
+
+.list-card { padding: 12px; margin-bottom: 10px; }
+.list-card.compact { padding: 10px; }
+.list-card.active { border-color: #60a5fa; }
+.detail-card { padding: 14px; margin-bottom: 14px; }
+.detail-card h3 { margin-top: 0; }
+.step, details, pre { padding: 12px; margin-bottom: 10px; }
+
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.stat-card { padding: 14px; }
+.stat-card strong { font-size: 20px; display: block; margin-top: 6px; }
+
+.task-layout { display: grid; grid-template-columns: 280px 1fr 320px; gap: 16px; align-items: start; }
+.run-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.run-tab { width: auto; margin: 0; background: #334155; }
+.run-tab.active { background: #2563eb; }
+.metrics-list { display: grid; grid-template-columns: repeat(2, minmax(120px, 1fr)); gap: 10px; margin: 12px 0; }
+.metrics-list div { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px; }
+.metrics-list strong { display: block; margin-top: 4px; }
+
+@media (max-width: 1200px) {
+  .task-layout { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 900px) {
+  .container, .container-v2 { grid-template-columns: 1fr; }
+  .sidebar { border-right: none; border-bottom: 1px solid #334155; }
+  .topbar { flex-direction: column; align-items: flex-start; }
+}
