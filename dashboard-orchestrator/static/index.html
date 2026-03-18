@@ -1,0 +1,45 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard Orchestrator MVP</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <h2>New 2-step job</h2>
+      <form id="job-form">
+        <label>Title<input name="title" value="Gemini plans, Codex implements" required /></label>
+        <label>Description<textarea name="description">Simple sequential orchestration demo.</textarea></label>
+        <label class="checkbox"><input type="checkbox" name="requires_approval" /> Require approval before step 2</label>
+
+        <h3>Step 1</h3>
+        <label>Name<input name="step1_name" value="Plan task" required /></label>
+        <label>Agent<select name="step1_agent"><option value="gemini">gemini</option><option value="codex">codex</option></select></label>
+        <label>Prompt<textarea name="step1_prompt" required>Create a concise implementation plan for a hello-world feature.</textarea></label>
+
+        <h3>Step 2</h3>
+        <label>Name<input name="step2_name" value="Implement task" required /></label>
+        <label>Agent<select name="step2_agent"><option value="codex">codex</option><option value="gemini">gemini</option></select></label>
+        <label>Prompt<textarea name="step2_prompt" required>Implement the requested feature using the previous plan as context.</textarea></label>
+
+        <button type="submit">Create job</button>
+      </form>
+      <hr />
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h2>Jobs</h2>
+        <button id="refresh-btn" style="width:auto;">Refresh</button>
+      </div>
+      <div id="jobs"></div>
+    </aside>
+    <main class="content">
+      <h1>Dashboard Orchestrator</h1>
+      <p class="muted">FastAPI + SQLite MVP for two-step sequential jobs with optional approval gate before step 2.</p>
+      <section id="detail"></section>
+    </main>
+  </div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
