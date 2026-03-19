@@ -8,10 +8,11 @@ AgentName = Literal["codex", "gemini"]
 WorkMode = Literal["research", "coding", "chat", "comparison", "ops"]
 OutputMode = Literal["chat", "summary", "report", "code"]
 TaskType = Literal["analysis", "code", "summary", "comparison", "general"]
-TaskStatus = Literal["pending", "routed", "waiting_approval", "running", "completed", "failed", "cancelled"]
 TaskPriority = Literal["low", "normal", "high"]
 RoutingStrategy = Literal["manual", "automatic", "compare"]
-RunStatus = Literal["queued", "running", "success", "error", "cancelled"]
+SessionStatus = Literal["active", "archived"]
+TaskStatus = Literal["active", "archived"]
+RunStatus = Literal["pending", "running", "success", "error"]
 
 
 class StepCreate(BaseModel):
@@ -58,16 +59,31 @@ class TaskCreate(BaseModel):
 class RunCreate(BaseModel):
     provider: str = Field(min_length=1, max_length=50)
     model: str = Field(min_length=1, max_length=100)
+    input: str | None = None
+    execute: bool = False
     prompt_snapshot: str = ""
     output: str | None = None
-    error_message: str | None = None
+    error: str | None = None
     latency_ms: int | None = None
-    cost: float | None = None
+    cost_estimate: float | None = None
     tokens_in: int | None = None
     tokens_out: int | None = None
-    score: float | None = None
-    status: RunStatus = "queued"
+    status: RunStatus = "pending"
 
 
 class SelectRunRequest(BaseModel):
     run_id: int
+
+
+class CompareModelRequest(BaseModel):
+    provider: str = Field(min_length=1, max_length=50)
+    model: str = Field(min_length=1, max_length=100)
+
+
+class CompareRequest(BaseModel):
+    models: list[CompareModelRequest] = Field(min_length=1)
+    execute: bool = True
+
+
+class RerunRequest(BaseModel):
+    execute: bool = True

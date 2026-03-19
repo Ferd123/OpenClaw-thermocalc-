@@ -48,6 +48,8 @@ details, pre, .list-card, .step, .detail-card, .panel, .stat-card { background: 
 .run-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
 .run-tab { width: auto; margin: 0; background: #334155; }
 .run-tab.active { background: #2563eb; }
+.selected-badge { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px; background: #16a34a; color: white; font-size: 12px; }
+.selected-panel { border-color: #16a34a; }
 .metrics-list { display: grid; grid-template-columns: repeat(2, minmax(120px, 1fr)); gap: 10px; margin: 12px 0; }
 .metrics-list div { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px; }
 .metrics-list strong { display: block; margin-top: 4px; }

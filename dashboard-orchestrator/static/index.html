@@ -149,23 +149,19 @@
                   </select>
                 </label>
                 <label>Model<input name="model" value="gemini/gemini-2.5-pro" required /></label>
-                <label>Prompt snapshot<textarea name="prompt_snapshot">Manual run prompt snapshot.</textarea></label>
-                <label>Status
-                  <select name="status">
-                    <option value="queued">queued</option>
-                    <option value="running">running</option>
-                    <option value="success">success</option>
-                    <option value="error">error</option>
-                  </select>
+                <label>Input<textarea name="input">Summarize the selected task input.</textarea></label>
+                <label class="checkbox"><input type="checkbox" name="execute" checked /> Execute now</label>
+                <button type="submit">New Run</button>
+              </form>
+              <div class="section-header" style="margin-top:16px;">
+                <h2>Compare Later</h2>
+              </div>
+              <form id="compare-form">
+                <label>Models (comma separated)
+                  <input name="models" value="gemini/gemini-2.5-pro,openai/gpt-4o" />
                 </label>
-                <label>Output<textarea name="output">Run output...</textarea></label>
-                <label>Error message<input name="error_message" /></label>
-                <label>Latency ms<input name="latency_ms" type="number" value="1200" /></label>
-                <label>Cost<input name="cost" type="number" step="0.001" value="0.02" /></label>
-                <label>Tokens in<input name="tokens_in" type="number" value="800" /></label>
-                <label>Tokens out<input name="tokens_out" type="number" value="500" /></label>
-                <label>Score<input name="score" type="number" step="0.1" /></label>
-                <button type="submit">Create run</button>
+                <label class="checkbox"><input type="checkbox" name="execute" checked /> Execute compare</label>
+                <button type="submit">Compare Later</button>
               </form>
             </div>
           </section>

@@ -7,9 +7,20 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from .database import init_db
-from .models import ApprovalRequest, JobCreate, JobRunRequest, RunCreate, SelectRunRequest, SessionCreate, TaskCreate
 from . import repository as repo
+from .database import init_db
+from .model_exec import ModelExecutionError, execute_model
+from .models import (
+    ApprovalRequest,
+    CompareRequest,
+    JobCreate,
+    JobRunRequest,
+    RerunRequest,
+    RunCreate,
+    SelectRunRequest,
+    SessionCreate,
+    TaskCreate,
+)
 from .runner import approve_and_continue, start_job
 
 app = FastAPI(title="Dashboard Orchestrator MVP")
@@ -105,8 +116,8 @@ def api_v2_metrics_summary() -> dict:
 
 
 @app.get("/api/v2/sessions")
-def api_v2_list_sessions() -> list[dict]:
-    return repo.list_sessions()
+def api_v2_list_sessions(include_archived: bool = False) -> list[dict]:
+    return repo.list_sessions(include_archived=include_archived)
 
 
 @app.post("/api/v2/sessions")
@@ -125,9 +136,27 @@ def api_v2_get_session(session_id: int) -> dict:
     return session
 
 
+@app.post("/api/v2/sessions/{session_id}/archive")
+def api_v2_archive_session(session_id: int) -> dict:
+    session = repo.get_session(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    repo.archive_session(session_id)
+    return {"ok": True, "status": "archived", "session_id": session_id}
+
+
+@app.delete("/api/v2/sessions/{session_id}")
+def api_v2_delete_session(session_id: int) -> dict:
+    session = repo.get_session(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    repo.delete_session(session_id)
+    return {"ok": True, "deleted": True, "session_id": session_id}
+
+
 @app.get("/api/v2/tasks")
-def api_v2_list_tasks(session_id: int | None = None) -> list[dict]:
-    return repo.list_tasks(session_id=session_id)
+def api_v2_list_tasks(session_id: int | None = None, include_archived: bool = False) -> list[dict]:
+    return repo.list_tasks(session_id=session_id, include_archived=include_archived)
 
 
 @app.post("/api/v2/tasks")
@@ -149,6 +178,24 @@ def api_v2_get_task(task_id: int) -> dict:
     return task
 
 
+@app.post("/api/v2/tasks/{task_id}/archive")
+def api_v2_archive_task(task_id: int) -> dict:
+    task = repo.get_task(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    repo.archive_task(task_id)
+    return {"ok": True, "status": "archived", "task_id": task_id}
+
+
+@app.delete("/api/v2/tasks/{task_id}")
+def api_v2_delete_task(task_id: int) -> dict:
+    task = repo.get_task(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    repo.delete_task(task_id)
+    return {"ok": True, "deleted": True, "task_id": task_id}
+
+
 @app.get("/api/v2/tasks/{task_id}/runs")
 def api_v2_list_runs(task_id: int) -> list[dict]:
     task = repo.get_task(task_id)
@@ -162,14 +209,105 @@ def api_v2_create_run(task_id: int, payload: RunCreate) -> dict:
     task = repo.get_task(task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
-    run_id = repo.create_run(task_id, payload.model_dump())
+
+    input_text = payload.input or task["input"]
+    run_id = repo.create_run(
+        task_id,
+        {
+            "provider": payload.provider,
+            "model": payload.model,
+            "input": input_text,
+            "prompt_snapshot": payload.prompt_snapshot or input_text,
+            "status": "pending",
+            "output": payload.output,
+            "error": payload.error,
+            "latency_ms": payload.latency_ms,
+            "cost_estimate": payload.cost_estimate,
+            "tokens_in": payload.tokens_in,
+            "tokens_out": payload.tokens_out,
+        },
+    )
+
+    if payload.execute:
+        repo.update_run(run_id, status="running", started_at=repo.now_iso())
+        try:
+            result = execute_model(payload.provider, payload.model, input_text)
+            repo.update_run(
+                run_id,
+                status="success",
+                output=result.output,
+                latency_ms=result.latency_ms,
+                tokens_in=result.tokens_in,
+                tokens_out=result.tokens_out,
+                cost_estimate=result.cost_estimate,
+                error_message=None,
+                finished_at=repo.now_iso(),
+            )
+        except ModelExecutionError as exc:
+            repo.update_run(
+                run_id,
+                status="error",
+                error_message=str(exc),
+                finished_at=repo.now_iso(),
+            )
+
+    run = repo.get_run(run_id)
     task = repo.get_task(task_id)
-    assert task is not None
-    return {"run_id": run_id, "task": task}
+    assert run is not None and task is not None
+    return {"run": run, "task": task}
 
 
-@app.post("/api/v2/tasks/{task_id}/select-run")
-def api_v2_select_run(task_id: int, payload: SelectRunRequest) -> dict:
+@app.delete("/api/v2/runs/{run_id}")
+def api_v2_delete_run(run_id: int) -> dict:
+    run = repo.get_run(run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="Run not found")
+    repo.delete_run(run_id)
+    return {"ok": True, "deleted": True, "run_id": run_id}
+
+
+@app.post("/api/v2/runs/{run_id}/rerun")
+def api_v2_rerun(run_id: int, payload: RerunRequest) -> dict:
+    original = repo.get_run(run_id)
+    if not original:
+        raise HTTPException(status_code=404, detail="Run not found")
+    task = repo.get_task(original["task_id"])
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    new_run_id = repo.create_run(
+        original["task_id"],
+        {
+            "provider": original["provider"],
+            "model": original["model"],
+            "input": original.get("input_text") or task["input"],
+            "prompt_snapshot": original.get("prompt_snapshot") or original.get("input_text") or task["input"],
+            "status": "pending",
+        },
+    )
+    if payload.execute:
+        repo.update_run(new_run_id, status="running", started_at=repo.now_iso())
+        try:
+            result = execute_model(original["provider"], original["model"], original.get("input_text") or task["input"])
+            repo.update_run(
+                new_run_id,
+                status="success",
+                output=result.output,
+                latency_ms=result.latency_ms,
+                tokens_in=result.tokens_in,
+                tokens_out=result.tokens_out,
+                cost_estimate=result.cost_estimate,
+                finished_at=repo.now_iso(),
+                error_message=None,
+            )
+        except ModelExecutionError as exc:
+            repo.update_run(new_run_id, status="error", error_message=str(exc), finished_at=repo.now_iso())
+    run = repo.get_run(new_run_id)
+    assert run is not None
+    return {"run": run, "source_run_id": run_id}
+
+
+@app.post("/api/v2/tasks/{task_id}/selected-run")
+def api_v2_set_selected_run(task_id: int, payload: SelectRunRequest) -> dict:
     task = repo.get_task(task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -180,3 +318,45 @@ def api_v2_select_run(task_id: int, payload: SelectRunRequest) -> dict:
     task = repo.get_task(task_id)
     assert task is not None
     return task
+
+
+@app.post("/api/v2/tasks/{task_id}/compare")
+def api_v2_compare_task(task_id: int, payload: CompareRequest) -> dict:
+    task = repo.get_task(task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    created_runs: list[dict] = []
+    for item in payload.models:
+        run_id = repo.create_run(
+            task_id,
+            {
+                "provider": item.provider,
+                "model": item.model,
+                "input": task["input"],
+                "prompt_snapshot": task["input"],
+                "status": "pending",
+            },
+        )
+        if payload.execute:
+            repo.update_run(run_id, status="running", started_at=repo.now_iso())
+            try:
+                result = execute_model(item.provider, item.model, task["input"])
+                repo.update_run(
+                    run_id,
+                    status="success",
+                    output=result.output,
+                    latency_ms=result.latency_ms,
+                    tokens_in=result.tokens_in,
+                    tokens_out=result.tokens_out,
+                    cost_estimate=result.cost_estimate,
+                    error_message=None,
+                    finished_at=repo.now_iso(),
+                )
+            except ModelExecutionError as exc:
+                repo.update_run(run_id, status="error", error_message=str(exc), finished_at=repo.now_iso())
+        run = repo.get_run(run_id)
+        if run:
+            created_runs.append(run)
+
+    return {"task_id": task_id, "runs": created_runs}

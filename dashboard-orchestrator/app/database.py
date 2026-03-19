@@ -10,6 +10,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 DB_PATH = BASE_DIR / "orchestrator.db"
 
 
+def _ensure_column(conn: sqlite3.Connection, table: str, column: str, ddl: str) -> None:
+    cols = {row[1] for row in conn.execute(f"PRAGMA table_info({table})").fetchall()}
+    if column not in cols:
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {ddl}")
+
+
 def init_db() -> None:
     with sqlite3.connect(DB_PATH) as conn:
         conn.execute(
@@ -72,7 +78,8 @@ def init_db() -> None:
                 status TEXT NOT NULL DEFAULT 'active',
                 context_refs TEXT NOT NULL DEFAULT '[]',
                 created_at TEXT NOT NULL,
-                updated_at TEXT NOT NULL
+                updated_at TEXT NOT NULL,
+                deleted_at TEXT
             )
             """
         )
@@ -85,7 +92,7 @@ def init_db() -> None:
                 type TEXT NOT NULL,
                 input TEXT NOT NULL,
                 tags TEXT NOT NULL DEFAULT '[]',
-                status TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'active',
                 priority TEXT NOT NULL DEFAULT 'normal',
                 routing_strategy TEXT NOT NULL DEFAULT 'automatic',
                 requested_models TEXT NOT NULL DEFAULT '[]',
@@ -95,6 +102,7 @@ def init_db() -> None:
                 created_at TEXT NOT NULL,
                 updated_at TEXT NOT NULL,
                 completed_at TEXT,
+                deleted_at TEXT,
                 FOREIGN KEY(session_id) REFERENCES sessions_v2(id)
             )
             """
@@ -107,17 +115,19 @@ def init_db() -> None:
                 provider TEXT NOT NULL,
                 model TEXT NOT NULL,
                 status TEXT NOT NULL,
+                input_text TEXT NOT NULL DEFAULT '',
                 prompt_snapshot TEXT NOT NULL DEFAULT '',
                 output TEXT,
                 error_message TEXT,
                 latency_ms INTEGER,
-                cost REAL,
+                cost_estimate REAL,
                 tokens_in INTEGER,
                 tokens_out INTEGER,
                 score REAL,
                 started_at TEXT,
                 finished_at TEXT,
                 created_at TEXT NOT NULL,
+                deleted_at TEXT,
                 FOREIGN KEY(task_id) REFERENCES tasks_v2(id)
             )
             """
@@ -143,7 +153,8 @@ def init_db() -> None:
                 auth_type TEXT NOT NULL,
                 status TEXT NOT NULL,
                 available_models TEXT NOT NULL DEFAULT '[]',
-                last_check_at TEXT
+                last_check_at TEXT,
+                last_error TEXT
             )
             """
         )
@@ -157,10 +168,19 @@ def init_db() -> None:
                 cost_level TEXT NOT NULL,
                 latency_class TEXT NOT NULL,
                 supports_multimodal INTEGER NOT NULL DEFAULT 0,
-                enabled INTEGER NOT NULL DEFAULT 1
+                enabled INTEGER NOT NULL DEFAULT 1,
+                status TEXT NOT NULL DEFAULT 'available'
             )
             """
         )
+
+        _ensure_column(conn, "sessions_v2", "deleted_at", "deleted_at TEXT")
+        _ensure_column(conn, "tasks_v2", "deleted_at", "deleted_at TEXT")
+        _ensure_column(conn, "runs_v2", "input_text", "input_text TEXT NOT NULL DEFAULT ''")
+        _ensure_column(conn, "runs_v2", "cost_estimate", "cost_estimate REAL")
+        _ensure_column(conn, "runs_v2", "deleted_at", "deleted_at TEXT")
+        _ensure_column(conn, "providers_v2", "last_error", "last_error TEXT")
+        _ensure_column(conn, "models_v2", "status", "status TEXT NOT NULL DEFAULT 'available'")
         conn.commit()
 
 
@@ -178,8 +198,7 @@ def get_conn() -> Iterable[sqlite3.Connection]:
 def row_to_dict(row: sqlite3.Row | None) -> dict[str, Any] | None:
     if row is None:
         return None
-    data = dict(row)
-    return data
+    return dict(row)
 
 
 def rows_to_dicts(rows: list[sqlite3.Row]) -> list[dict[str, Any]]:

@@ -122,56 +122,22 @@ V2_PROVIDERS = [
         "auth_type": "api_key",
         "status": "connected",
         "available_models": ["openai/gpt-4o", "openai/gpt-4o-mini"],
+        "last_error": None,
     },
     {
         "name": "gemini",
         "auth_type": "oauth",
         "status": "connected",
         "available_models": ["gemini/gemini-2.5-pro", "gemini/gemini-2.5-flash"],
+        "last_error": None,
     },
 ]
 
 V2_MODELS = [
-    {
-        "id": "openai/gpt-4o",
-        "provider": "openai",
-        "label": "GPT-4o",
-        "capabilities": ["general", "coding"],
-        "cost_level": "medium",
-        "latency_class": "medium",
-        "supports_multimodal": True,
-        "enabled": True,
-    },
-    {
-        "id": "openai/gpt-4o-mini",
-        "provider": "openai",
-        "label": "GPT-4o mini",
-        "capabilities": ["general", "fast"],
-        "cost_level": "low",
-        "latency_class": "fast",
-        "supports_multimodal": True,
-        "enabled": True,
-    },
-    {
-        "id": "gemini/gemini-2.5-pro",
-        "provider": "gemini",
-        "label": "Gemini 2.5 Pro",
-        "capabilities": ["research", "general", "multimodal"],
-        "cost_level": "medium",
-        "latency_class": "medium",
-        "supports_multimodal": True,
-        "enabled": True,
-    },
-    {
-        "id": "gemini/gemini-2.5-flash",
-        "provider": "gemini",
-        "label": "Gemini 2.5 Flash",
-        "capabilities": ["general", "fast", "multimodal"],
-        "cost_level": "low",
-        "latency_class": "fast",
-        "supports_multimodal": True,
-        "enabled": True,
-    },
+    {"id": "openai/gpt-4o", "provider": "openai", "label": "GPT-4o", "capabilities": ["general", "coding"], "cost_level": "medium", "latency_class": "medium", "supports_multimodal": True, "enabled": True, "status": "available"},
+    {"id": "openai/gpt-4o-mini", "provider": "openai", "label": "GPT-4o mini", "capabilities": ["general", "fast"], "cost_level": "low", "latency_class": "fast", "supports_multimodal": True, "enabled": True, "status": "available"},
+    {"id": "gemini/gemini-2.5-pro", "provider": "gemini", "label": "Gemini 2.5 Pro", "capabilities": ["research", "general", "multimodal"], "cost_level": "medium", "latency_class": "medium", "supports_multimodal": True, "enabled": True, "status": "available"},
+    {"id": "gemini/gemini-2.5-flash", "provider": "gemini", "label": "Gemini 2.5 Flash", "capabilities": ["general", "fast", "multimodal"], "cost_level": "low", "latency_class": "fast", "supports_multimodal": True, "enabled": True, "status": "available"},
 ]
 
 
@@ -180,8 +146,8 @@ def seed_v2_catalog() -> None:
         for provider in V2_PROVIDERS:
             conn.execute(
                 """
-                INSERT OR REPLACE INTO providers_v2 (name, auth_type, status, available_models, last_check_at)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT OR REPLACE INTO providers_v2 (name, auth_type, status, available_models, last_check_at, last_error)
+                VALUES (?, ?, ?, ?, ?, ?)
                 """,
                 (
                     provider["name"],
@@ -189,23 +155,18 @@ def seed_v2_catalog() -> None:
                     provider["status"],
                     json.dumps(provider["available_models"]),
                     now_iso(),
+                    provider.get("last_error"),
                 ),
             )
         for model in V2_MODELS:
             conn.execute(
                 """
-                INSERT OR REPLACE INTO models_v2 (id, provider, label, capabilities, cost_level, latency_class, supports_multimodal, enabled)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT OR REPLACE INTO models_v2 (id, provider, label, capabilities, cost_level, latency_class, supports_multimodal, enabled, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
-                    model["id"],
-                    model["provider"],
-                    model["label"],
-                    json.dumps(model["capabilities"]),
-                    model["cost_level"],
-                    model["latency_class"],
-                    int(model["supports_multimodal"]),
-                    int(model["enabled"]),
+                    model["id"], model["provider"], model["label"], json.dumps(model["capabilities"]), model["cost_level"],
+                    model["latency_class"], int(model["supports_multimodal"]), int(model["enabled"]), model["status"]
                 ),
             )
 
@@ -231,6 +192,11 @@ def _hydrate_task(row: dict[str, Any]) -> dict[str, Any]:
     return row
 
 
+def _hydrate_run(row: dict[str, Any]) -> dict[str, Any]:
+    row["selected"] = False
+    return row
+
+
 def _hydrate_provider(row: dict[str, Any]) -> dict[str, Any]:
     row["available_models"] = _loads_json(row.get("available_models"), [])
     return row
@@ -248,32 +214,42 @@ def create_session(payload: dict[str, Any]) -> int:
     with get_conn() as conn:
         cur = conn.execute(
             """
-            INSERT INTO sessions_v2 (title, work_mode, output_mode, active_model, status, context_refs, created_at, updated_at)
-            VALUES (?, ?, ?, ?, 'active', ?, ?, ?)
+            INSERT INTO sessions_v2 (title, work_mode, output_mode, active_model, status, context_refs, created_at, updated_at, deleted_at)
+            VALUES (?, ?, ?, ?, 'active', ?, ?, ?, NULL)
             """,
-            (
-                payload["title"],
-                payload["work_mode"],
-                payload["output_mode"],
-                payload.get("active_model"),
-                json.dumps(payload.get("context_refs", [])),
-                ts,
-                ts,
-            ),
+            (payload["title"], payload["work_mode"], payload["output_mode"], payload.get("active_model"), json.dumps(payload.get("context_refs", [])), ts, ts),
         )
         return int(cur.lastrowid)
 
 
-def list_sessions() -> list[dict[str, Any]]:
+def list_sessions(include_archived: bool = False) -> list[dict[str, Any]]:
+    query = "SELECT * FROM sessions_v2 WHERE deleted_at IS NULL"
+    if not include_archived:
+        query += " AND status = 'active'"
+    query += " ORDER BY id DESC"
     with get_conn() as conn:
-        rows = conn.execute("SELECT * FROM sessions_v2 ORDER BY id DESC").fetchall()
+        rows = conn.execute(query).fetchall()
     return [_hydrate_session(dict(r)) for r in rows]
 
 
 def get_session(session_id: int) -> dict[str, Any] | None:
     with get_conn() as conn:
-        row = row_to_dict(conn.execute("SELECT * FROM sessions_v2 WHERE id = ?", (session_id,)).fetchone())
+        row = row_to_dict(conn.execute("SELECT * FROM sessions_v2 WHERE id = ? AND deleted_at IS NULL", (session_id,)).fetchone())
     return _hydrate_session(row) if row else None
+
+
+def archive_session(session_id: int) -> None:
+    ts = now_iso()
+    with get_conn() as conn:
+        conn.execute("UPDATE sessions_v2 SET status = 'archived', updated_at = ? WHERE id = ? AND deleted_at IS NULL", (ts, session_id))
+        conn.execute("UPDATE tasks_v2 SET status = 'archived', updated_at = ? WHERE session_id = ? AND deleted_at IS NULL", (ts, session_id))
+
+
+def delete_session(session_id: int) -> None:
+    ts = now_iso()
+    with get_conn() as conn:
+        conn.execute("UPDATE sessions_v2 SET deleted_at = ?, status = 'archived', updated_at = ? WHERE id = ? AND deleted_at IS NULL", (ts, ts, session_id))
+        conn.execute("UPDATE tasks_v2 SET deleted_at = ?, status = 'archived', updated_at = ? WHERE session_id = ? AND deleted_at IS NULL", (ts, ts, session_id))
 
 
 def create_task(payload: dict[str, Any]) -> int:
@@ -284,48 +260,61 @@ def create_task(payload: dict[str, Any]) -> int:
             """
             INSERT INTO tasks_v2 (
                 session_id, title, type, input, tags, status, priority, routing_strategy,
-                requested_models, approval_required, approval_status, created_at, updated_at, completed_at
+                requested_models, selected_run_id, approval_required, approval_status, created_at, updated_at, completed_at, deleted_at
             )
-            VALUES (?, ?, ?, ?, ?, 'pending', ?, ?, ?, ?, ?, ?, ?, NULL)
+            VALUES (?, ?, ?, ?, ?, 'active', ?, ?, ?, NULL, ?, ?, ?, ?, NULL, NULL)
             """,
             (
-                payload["session_id"],
-                payload["title"],
-                payload["type"],
-                payload["input"],
-                json.dumps(payload.get("tags", [])),
-                payload.get("priority", "normal"),
-                payload.get("routing_strategy", "automatic"),
-                json.dumps(payload.get("requested_models", [])),
-                int(payload.get("approval_required", False)),
-                approval_status,
-                ts,
-                ts,
+                payload["session_id"], payload["title"], payload["type"], payload["input"], json.dumps(payload.get("tags", [])),
+                payload.get("priority", "normal"), payload.get("routing_strategy", "automatic"), json.dumps(payload.get("requested_models", [])),
+                int(payload.get("approval_required", False)), approval_status, ts, ts,
             ),
         )
         return int(cur.lastrowid)
 
 
-def list_tasks(session_id: int | None = None) -> list[dict[str, Any]]:
+def list_tasks(session_id: int | None = None, include_archived: bool = False) -> list[dict[str, Any]]:
+    query = "SELECT * FROM tasks_v2 WHERE deleted_at IS NULL"
+    params: list[Any] = []
+    if session_id is not None:
+        query += " AND session_id = ?"
+        params.append(session_id)
+    if not include_archived:
+        query += " AND status = 'active'"
+    query += " ORDER BY id DESC"
     with get_conn() as conn:
-        if session_id is None:
-            rows = conn.execute("SELECT * FROM tasks_v2 ORDER BY id DESC").fetchall()
-        else:
-            rows = conn.execute("SELECT * FROM tasks_v2 WHERE session_id = ? ORDER BY id DESC", (session_id,)).fetchall()
+        rows = conn.execute(query, params).fetchall()
     return [_hydrate_task(dict(r)) for r in rows]
 
 
 def get_task(task_id: int) -> dict[str, Any] | None:
     with get_conn() as conn:
-        task = row_to_dict(conn.execute("SELECT * FROM tasks_v2 WHERE id = ?", (task_id,)).fetchone())
+        task = row_to_dict(conn.execute("SELECT * FROM tasks_v2 WHERE id = ? AND deleted_at IS NULL", (task_id,)).fetchone())
         if not task:
             return None
-        runs = rows_to_dicts(conn.execute("SELECT * FROM runs_v2 WHERE task_id = ? ORDER BY id", (task_id,)).fetchall())
+        runs = rows_to_dicts(conn.execute("SELECT * FROM runs_v2 WHERE task_id = ? AND deleted_at IS NULL ORDER BY id", (task_id,)).fetchall())
         artifacts = rows_to_dicts(conn.execute("SELECT * FROM artifacts_v2 WHERE task_id = ? ORDER BY id", (task_id,)).fetchall())
     hydrated = _hydrate_task(task)
-    hydrated["runs"] = runs
+    hydrated_runs = []
+    for run in runs:
+        hr = _hydrate_run(run)
+        hr["selected"] = hr["id"] == hydrated.get("selected_run_id")
+        hydrated_runs.append(hr)
+    hydrated["runs"] = hydrated_runs
     hydrated["artifacts"] = artifacts
     return hydrated
+
+
+def archive_task(task_id: int) -> None:
+    with get_conn() as conn:
+        conn.execute("UPDATE tasks_v2 SET status = 'archived', updated_at = ? WHERE id = ? AND deleted_at IS NULL", (now_iso(), task_id))
+
+
+def delete_task(task_id: int) -> None:
+    ts = now_iso()
+    with get_conn() as conn:
+        conn.execute("UPDATE tasks_v2 SET deleted_at = ?, status = 'archived', updated_at = ? WHERE id = ? AND deleted_at IS NULL", (ts, ts, task_id))
+        conn.execute("UPDATE runs_v2 SET deleted_at = ? WHERE task_id = ? AND deleted_at IS NULL", (ts, task_id))
 
 
 def create_run(task_id: int, payload: dict[str, Any]) -> int:
@@ -334,21 +323,22 @@ def create_run(task_id: int, payload: dict[str, Any]) -> int:
         cur = conn.execute(
             """
             INSERT INTO runs_v2 (
-                task_id, provider, model, status, prompt_snapshot, output, error_message,
-                latency_ms, cost, tokens_in, tokens_out, score, started_at, finished_at, created_at
+                task_id, provider, model, status, input_text, prompt_snapshot, output, error_message,
+                latency_ms, cost_estimate, tokens_in, tokens_out, score, started_at, finished_at, created_at, deleted_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
             """,
             (
                 task_id,
                 payload["provider"],
                 payload["model"],
-                payload.get("status", "queued"),
+                payload.get("status", "pending"),
+                payload.get("input") or payload.get("input_text") or "",
                 payload.get("prompt_snapshot", ""),
                 payload.get("output"),
-                payload.get("error_message"),
+                payload.get("error"),
                 payload.get("latency_ms"),
-                payload.get("cost"),
+                payload.get("cost_estimate"),
                 payload.get("tokens_in"),
                 payload.get("tokens_out"),
                 payload.get("score"),
@@ -357,23 +347,53 @@ def create_run(task_id: int, payload: dict[str, Any]) -> int:
                 ts,
             ),
         )
-        run_id = int(cur.lastrowid)
-        conn.execute("UPDATE tasks_v2 SET status = 'running', updated_at = ? WHERE id = ?", (ts, task_id))
-        return run_id
+        return int(cur.lastrowid)
+
+
+def get_run(run_id: int) -> dict[str, Any] | None:
+    with get_conn() as conn:
+        row = row_to_dict(conn.execute("SELECT * FROM runs_v2 WHERE id = ? AND deleted_at IS NULL", (run_id,)).fetchone())
+    return _hydrate_run(row) if row else None
+
+
+def update_run(run_id: int, **fields: Any) -> None:
+    if not fields:
+        return
+    clauses = ", ".join(f"{k} = ?" for k in fields.keys())
+    values = list(fields.values()) + [run_id]
+    with get_conn() as conn:
+        conn.execute(f"UPDATE runs_v2 SET {clauses} WHERE id = ? AND deleted_at IS NULL", values)
+
+
+def delete_run(run_id: int) -> None:
+    ts = now_iso()
+    with get_conn() as conn:
+        run = conn.execute("SELECT task_id FROM runs_v2 WHERE id = ? AND deleted_at IS NULL", (run_id,)).fetchone()
+        if not run:
+            return
+        task_id = run[0]
+        conn.execute("UPDATE runs_v2 SET deleted_at = ? WHERE id = ? AND deleted_at IS NULL", (ts, run_id))
+        conn.execute("UPDATE tasks_v2 SET selected_run_id = NULL, updated_at = ? WHERE id = ? AND selected_run_id = ?", (ts, task_id, run_id))
 
 
 def select_run(task_id: int, run_id: int) -> None:
     with get_conn() as conn:
-        conn.execute(
-            "UPDATE tasks_v2 SET selected_run_id = ?, status = 'completed', updated_at = ?, completed_at = ? WHERE id = ?",
-            (run_id, now_iso(), now_iso(), task_id),
-        )
+        conn.execute("UPDATE tasks_v2 SET selected_run_id = ?, updated_at = ? WHERE id = ? AND deleted_at IS NULL", (run_id, now_iso(), task_id))
 
 
 def list_runs(task_id: int) -> list[dict[str, Any]]:
+    selected = None
     with get_conn() as conn:
-        rows = conn.execute("SELECT * FROM runs_v2 WHERE task_id = ? ORDER BY id", (task_id,)).fetchall()
-    return rows_to_dicts(rows)
+        task = conn.execute("SELECT selected_run_id FROM tasks_v2 WHERE id = ? AND deleted_at IS NULL", (task_id,)).fetchone()
+        if task:
+            selected = task[0]
+        rows = conn.execute("SELECT * FROM runs_v2 WHERE task_id = ? AND deleted_at IS NULL ORDER BY id", (task_id,)).fetchall()
+    hydrated = []
+    for row in rows_to_dicts(rows):
+        item = _hydrate_run(row)
+        item["selected"] = item["id"] == selected
+        hydrated.append(item)
+    return hydrated
 
 
 def list_providers() -> list[dict[str, Any]]:
@@ -390,15 +410,9 @@ def list_models() -> list[dict[str, Any]]:
 
 def get_metrics_summary() -> dict[str, Any]:
     with get_conn() as conn:
-        total_sessions = conn.execute("SELECT COUNT(*) FROM sessions_v2").fetchone()[0]
-        total_tasks = conn.execute("SELECT COUNT(*) FROM tasks_v2").fetchone()[0]
-        total_runs = conn.execute("SELECT COUNT(*) FROM runs_v2").fetchone()[0]
-        total_cost = conn.execute("SELECT COALESCE(SUM(cost), 0) FROM runs_v2 WHERE cost IS NOT NULL").fetchone()[0]
-        avg_latency = conn.execute("SELECT COALESCE(AVG(latency_ms), 0) FROM runs_v2 WHERE latency_ms IS NOT NULL").fetchone()[0]
-    return {
-        "sessions": total_sessions,
-        "tasks": total_tasks,
-        "runs": total_runs,
-        "total_cost": total_cost,
-        "avg_latency_ms": avg_latency,
-    }
+        total_sessions = conn.execute("SELECT COUNT(*) FROM sessions_v2 WHERE deleted_at IS NULL").fetchone()[0]
+        total_tasks = conn.execute("SELECT COUNT(*) FROM tasks_v2 WHERE deleted_at IS NULL").fetchone()[0]
+        total_runs = conn.execute("SELECT COUNT(*) FROM runs_v2 WHERE deleted_at IS NULL").fetchone()[0]
+        total_cost = conn.execute("SELECT COALESCE(SUM(cost_estimate), 0) FROM runs_v2 WHERE cost_estimate IS NOT NULL AND deleted_at IS NULL").fetchone()[0]
+        avg_latency = conn.execute("SELECT COALESCE(AVG(latency_ms), 0) FROM runs_v2 WHERE latency_ms IS NOT NULL AND deleted_at IS NULL").fetchone()[0]
+    return {"sessions": total_sessions, "tasks": total_tasks, "runs": total_runs, "total_cost": total_cost, "avg_latency_ms": avg_latency}
