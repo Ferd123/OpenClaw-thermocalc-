@@ -17,12 +17,22 @@ const taskDetailEl = document.getElementById('task-detail');
 const providersListEl = document.getElementById('providers-list');
 const modelsListEl = document.getElementById('models-list');
 const metricsSummaryEl = document.getElementById('metrics-summary');
+const sessionSearchEl = document.getElementById('session-search');
+const taskSearchEl = document.getElementById('task-search');
+const modelSuggestionsEl = document.getElementById('model-suggestions');
+const sessionActiveProviderEl = document.getElementById('session-active-provider');
+const sessionActiveModelEl = document.getElementById('session-active-model');
+const runProviderEl = document.getElementById('run-provider');
+const runModelEl = document.getElementById('run-model');
+const compareModelsEl = document.getElementById('compare-models');
 
 let selectedJobId = null;
 let selectedSessionId = null;
 let selectedTaskId = null;
 let activeRunTabId = null;
 let openDetailPanels = new Set();
+let cachedProviders = [];
+let cachedModels = [];
 
 async function api(path, options = {}) {
   const res = await fetch(path, {
@@ -42,6 +52,29 @@ function parseCsvList(value) {
   return value.split(',').map(v => v.trim()).filter(Boolean);
 }
 
+function filterText(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function updateModelSuggestions() {
+  if (!modelSuggestionsEl) return;
+  modelSuggestionsEl.innerHTML = cachedModels.map(model => `<option value="${escapeHtml(model.id)}"></option>`).join('');
+}
+
+function getModelsForProvider(provider) {
+  if (!provider) return cachedModels;
+  return cachedModels.filter(model => model.provider === provider);
+}
+
+function maybeAutofillModel(provider, inputEl) {
+  if (!inputEl) return;
+  const models = getModelsForProvider(provider);
+  if (!models.length) return;
+  if (!inputEl.value || !models.some(model => model.id === inputEl.value)) {
+    inputEl.value = models[0].id;
+  }
+}
+
 function formatNumber(value) {
   if (value === null || value === undefined || value === '') return '—';
   return value;
@@ -54,6 +87,7 @@ function activateTab(tabName) {
 
 async function loadProviders() {
   const providers = await api('/api/v2/providers');
+  cachedProviders = providers;
   providersListEl.innerHTML = providers.map(provider => `
     <div class="list-card compact">
       <div><strong>${escapeHtml(provider.name)}</strong> <span class="pill">${escapeHtml(provider.status)}</span></div>
@@ -65,6 +99,10 @@ async function loadProviders() {
 
 async function loadModels() {
   const models = await api('/api/v2/models');
+  cachedModels = models;
+  updateModelSuggestions();
+  maybeAutofillModel(sessionActiveProviderEl?.value, sessionActiveModelEl);
+  maybeAutofillModel(runProviderEl?.value, runModelEl);
   modelsListEl.innerHTML = models.map(model => `
     <div class="list-card compact">
       <div><strong>${escapeHtml(model.id)}</strong> <span class="pill">${escapeHtml(model.status)}</span></div>
@@ -85,12 +123,19 @@ async function loadMetrics() {
 
 async function loadSessions() {
   const sessions = await api('/api/v2/sessions');
-  sessionsListEl.innerHTML = sessions.map(session => `
+  const query = filterText(sessionSearchEl?.value);
+  const filtered = !query ? sessions : sessions.filter(session =>
+    filterText(session.title).includes(query) ||
+    filterText(session.work_mode).includes(query) ||
+    filterText(session.output_mode).includes(query) ||
+    filterText(session.active_model).includes(query)
+  );
+  sessionsListEl.innerHTML = filtered.map(session => `
     <div class="list-card ${session.id === selectedSessionId ? 'active' : ''}" data-session-id="${session.id}">
       <div><strong>#${session.id}</strong> ${escapeHtml(session.title)}</div>
       <div class="muted">${escapeHtml(session.work_mode)} · ${escapeHtml(session.output_mode)} · <span class="pill">${escapeHtml(session.status)}</span></div>
       <div class="muted">default: ${escapeHtml(session.active_model || '—')}</div>
-    </div>`).join('') || '<div class="muted">No sessions yet.</div>';
+    </div>`).join('') || '<div class="muted">No sessions match the current filter.</div>';
   sessionsListEl.querySelectorAll('[data-session-id]').forEach(card => {
     card.addEventListener('click', async () => {
       selectedSessionId = Number(card.dataset.sessionId);
@@ -128,12 +173,19 @@ async function loadTasks() {
     return;
   }
   const tasks = await api(`/api/v2/tasks?session_id=${selectedSessionId}`);
-  tasksListEl.innerHTML = tasks.map(task => `
+  const query = filterText(taskSearchEl?.value);
+  const filtered = !query ? tasks : tasks.filter(task =>
+    filterText(task.title).includes(query) ||
+    filterText(task.type).includes(query) ||
+    filterText(task.status).includes(query) ||
+    filterText(task.routing_strategy).includes(query)
+  );
+  tasksListEl.innerHTML = filtered.map(task => `
     <div class="list-card ${task.id === selectedTaskId ? 'active' : ''}" data-task-id="${task.id}">
       <div><strong>#${task.id}</strong> ${escapeHtml(task.title)}</div>
       <div class="muted">${escapeHtml(task.type)} · <span class="pill">${escapeHtml(task.status)}</span></div>
       <div class="muted">selected run: ${escapeHtml(String(task.selected_run_id || '—'))}</div>
-    </div>`).join('') || '<div class="muted">No tasks yet.</div>';
+    </div>`).join('') || '<div class="muted">No tasks match the current filter.</div>';
   tasksListEl.querySelectorAll('[data-task-id]').forEach(card => {
     card.addEventListener('click', async () => {
       selectedTaskId = Number(card.dataset.taskId);
@@ -155,6 +207,39 @@ async function loadTaskDetail() {
   if (!activeRunTabId && runs.length) activeRunTabId = task.selected_run_id || runs[0].id;
   const activeRun = runs.find(run => run.id === activeRunTabId) || runs[0] || null;
   const selectedRun = runs.find(run => run.selected) || null;
+  const runSummary = runs.length ? `
+    <div class="detail-card">
+      <div class="section-header"><h3>Run comparison</h3><span class="pill">${runs.length} runs</span></div>
+      <div class="table-wrap">
+        <table class="summary-table">
+          <thead>
+            <tr>
+              <th>Run</th>
+              <th>Provider</th>
+              <th>Model</th>
+              <th>Status</th>
+              <th>Latency</th>
+              <th>Cost</th>
+              <th>Tokens In</th>
+              <th>Tokens Out</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${runs.map(run => `
+              <tr class="${run.selected ? 'selected-row' : ''}">
+                <td>#${run.id}</td>
+                <td>${escapeHtml(run.provider)}</td>
+                <td>${escapeHtml(run.model)}</td>
+                <td>${escapeHtml(run.status)}</td>
+                <td>${formatNumber(run.latency_ms)}</td>
+                <td>${formatNumber(run.cost_estimate)}</td>
+                <td>${formatNumber(run.tokens_in)}</td>
+                <td>${formatNumber(run.tokens_out)}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>` : '';
 
   const runTabs = runs.map(run => `
     <button class="run-tab ${run.id === (activeRun && activeRun.id) ? 'active' : ''}" data-run-tab-id="${run.id}">
@@ -197,6 +282,7 @@ async function loadTaskDetail() {
       <div class="actions"><button class="ghost" onclick="archiveTask(${task.id})">Archive Task</button><button class="danger" onclick="deleteTask(${task.id})">Delete Task</button></div>
     </div>
     ${selectedPanel}
+    ${runSummary}
     <div class="run-tabs">${runTabs}</div>
     ${runDetail}`;
 
@@ -268,6 +354,11 @@ sessionForm.addEventListener('submit', async (e) => {
   const session = await api('/api/v2/sessions', { method: 'POST', body: JSON.stringify(payload) });
   selectedSessionId = session.id; await bootstrapV2();
 });
+
+sessionSearchEl?.addEventListener('input', loadSessions);
+taskSearchEl?.addEventListener('input', loadTasks);
+sessionActiveProviderEl?.addEventListener('change', () => maybeAutofillModel(sessionActiveProviderEl.value, sessionActiveModelEl));
+runProviderEl?.addEventListener('change', () => maybeAutofillModel(runProviderEl.value, runModelEl));
 
 taskForm.addEventListener('submit', async (e) => {
   e.preventDefault();

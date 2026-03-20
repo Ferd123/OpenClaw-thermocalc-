@@ -53,6 +53,11 @@ details, pre, .list-card, .step, .detail-card, .panel, .stat-card { background: 
 .metrics-list { display: grid; grid-template-columns: repeat(2, minmax(120px, 1fr)); gap: 10px; margin: 12px 0; }
 .metrics-list div { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px; }
 .metrics-list strong { display: block; margin-top: 4px; }
+.table-wrap { overflow-x: auto; }
+.summary-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.summary-table th, .summary-table td { text-align: left; padding: 10px; border-bottom: 1px solid #334155; }
+.summary-table th { color: #94a3b8; font-weight: 600; }
+.selected-row { background: rgba(22, 163, 74, 0.12); }
 
 @media (max-width: 1200px) {
   .task-layout { grid-template-columns: 1fr; }

@@ -50,7 +50,14 @@
                   <option value="code">code</option>
                 </select>
               </label>
-              <label>Default model<input name="active_model" value="gemini/gemini-2.5-pro" /></label>
+              <label>Default provider
+                <select name="active_provider" id="session-active-provider">
+                  <option value="">auto</option>
+                  <option value="gemini">gemini</option>
+                  <option value="openai">openai</option>
+                </select>
+              </label>
+              <label>Default model<input name="active_model" id="session-active-model" value="gemini/gemini-2.5-pro" list="model-suggestions" /></label>
               <label>Context refs (comma separated)<input name="context_refs" value="paper.pdf,csv-data.csv" /></label>
               <button type="submit">Create session</button>
             </form>
@@ -61,6 +68,7 @@
               <h2>Sessions</h2>
               <button id="refresh-v2-btn" type="button" class="ghost">Refresh</button>
             </div>
+            <label>Search sessions<input id="session-search" placeholder="Filter by title / mode / model" /></label>
             <div id="sessions-list"></div>
           </section>
 
@@ -118,7 +126,7 @@
                   <option value="compare">compare</option>
                 </select>
               </label>
-              <label>Requested models (comma separated)<input name="requested_models" value="gemini/gemini-2.5-pro,openai/gpt-4o" /></label>
+              <label>Requested models (comma separated)<input name="requested_models" id="task-requested-models" value="gemini/gemini-2.5-pro,openai/gpt-4o" list="model-suggestions" /></label>
               <label class="checkbox"><input type="checkbox" name="approval_required" /> Approval required</label>
               <button type="submit">Create task</button>
             </form>
@@ -129,6 +137,7 @@
               <div class="section-header">
                 <h2>Tasks</h2>
               </div>
+              <label>Search tasks<input id="task-search" placeholder="Filter by title / type / status" /></label>
               <div id="tasks-list"></div>
             </div>
             <div>
@@ -143,12 +152,12 @@
               </div>
               <form id="run-form">
                 <label>Provider
-                  <select name="provider">
+                  <select name="provider" id="run-provider">
                     <option value="gemini">gemini</option>
                     <option value="openai">openai</option>
                   </select>
                 </label>
-                <label>Model<input name="model" value="gemini/gemini-2.5-pro" required /></label>
+                <label>Model<input name="model" id="run-model" value="gemini/gemini-2.5-pro" required list="model-suggestions" /></label>
                 <label>Input<textarea name="input">Summarize the selected task input.</textarea></label>
                 <label class="checkbox"><input type="checkbox" name="execute" checked /> Execute now</label>
                 <button type="submit">New Run</button>
@@ -158,7 +167,7 @@
               </div>
               <form id="compare-form">
                 <label>Models (comma separated)
-                  <input name="models" value="gemini/gemini-2.5-pro,openai/gpt-4o" />
+                  <input name="models" id="compare-models" value="gemini/gemini-2.5-pro,openai/gpt-4o" list="model-suggestions" />
                 </label>
                 <label class="checkbox"><input type="checkbox" name="execute" checked /> Execute compare</label>
                 <button type="submit">Compare Later</button>
@@ -204,6 +213,7 @@
       </div>
     </section>
   </div>
+  <datalist id="model-suggestions"></datalist>
   <script src="/static/app.js"></script>
 </body>
 </html>
