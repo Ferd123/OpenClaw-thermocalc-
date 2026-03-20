@@ -748,12 +748,38 @@ Esto implica que para `MGO`:
 - Thermo-Calc está reinterpretando, remapeando o ignorando el estado pedido
 - el valor de `ACR(MGO)` debe considerarse válido **respecto al reference state efectivo que el solver terminó usando**, no necesariamente respecto al texto del macro
 
+### Microtest explícito hecho para MGO
+Se compararon dos casos en el mismo punto de prueba:
+1. `SET_REFERENCE_STATE MGO HALITE#1,,,
+2. `SET_REFERENCE_STATE MGO HALITE#2,,,
+
+Resultado:
+- en ambos casos `LIST_EQUILIBRIUM ,,,` reportó `Ref.stat = HALITE#1`
+- en ambos casos `ACR(MGO)` fue idéntico
+
+Luego se repitió la prueba en una zona más rica en MgO (`10 wt% MgO`) y el resultado se mantuvo:
+- el estado efectivo siguió reportándose como `HALITE#1`
+- aunque en equilibrio apareció una fase adicional `HALITE#3` rica en MgO
+
+### Conclusión operativa fuerte
+Para este workflow con `TCOX12`:
+- elegir `HALITE#1`, `HALITE#2` o intentar inferir `HALITE#3` como reference state pedido para `MGO` **no cambia el estado estándar efectivo usado por el solver**
+- el reference state efectivo de `MGO` está siendo controlado por la convención interna del modelo y no por el label `HALITE#k` solicitado explícitamente en la macro
+- la fase precipitada en equilibrio (`HALITE#1`, `HALITE#3`, etc.) y el `Ref.stat` termodinámico **no son sinónimos**
+
 ### Regla nueva
 Antes de cualquier corrida grande que use `ACR(...)`, validar siempre reference states efectivos con:
 ```text
 LIST_EQUILIBRIUM ,,,
 ```
 No asumir que `SET_REFERENCE_STATE` fue aceptado literalmente.
+
+### Regla práctica final para MGO
+En este workflow, documentar y usar de forma consistente:
+```text
+SET_REFERENCE_STATE MGO HALITE#1,,,
+```
+no porque sea el único texto aceptable, sino porque es el estado efectivo que Thermo-Calc terminó reportando de manera consistente en las pruebas.
 
 ---
 
