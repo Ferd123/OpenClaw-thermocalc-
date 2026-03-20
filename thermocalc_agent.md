@@ -920,3 +920,176 @@ En:
 
 ### Estado actual del conocimiento
 El flujo ya está suficientemente maduro para pasar a construcción de chunks de 5000 puntos, **pero** antes conviene cerrar el pendiente del reference state efectivo de `MGO` si las actividades van a formar parte central del análisis/reportes.
+
+---
+
+## Corrida triangular exacta: 5050 puntos con MgO fijo al 3%
+Carpeta:
+`C:\Users\ELANOR\Documents\ThermoCalc_OpenClaw\run_2026-03-19_tri5050_mgo3`
+
+### Propósito
+Generar una malla triangular exacta sobre el ternario `CaO-SiO2-Al2O3` con:
+- `W(MGO)=0.03` fijo
+- `W(CAO)+W(SIO2)+W(AL2O3)=0.97`
+
+### Regla geométrica usada
+Se usó una retícula triangular exacta con:
+```text
+n = 99 subdivisiones por lado
+points = (n+1)(n+2)/2 = 5050
+```
+
+### Archivos generados
+En la carpeta base:
+- `tri5050_mgo3_points.csv`
+- `generate_tri5050_mgo3.py`
+- `run_tri5050_chunk.py`
+- `README.txt`
+
+En:
+`chunks_5x1010_dat`
+- `tri5050_mgo3_chunk_01.tcm/.dat/.stdout.log`
+- `tri5050_mgo3_chunk_02.tcm/.dat/.stdout.log`
+- `tri5050_mgo3_chunk_03.tcm/.dat/.stdout.log`
+- `tri5050_mgo3_chunk_04.tcm/.dat/.stdout.log`
+- `tri5050_mgo3_chunk_05.tcm/.dat/.stdout.log`
+
+### Estado
+- 5 chunks corridos
+- todos terminaron con `RC=0`
+- `.dat` completos y consistentes
+
+### Parseo final
+Se creó parser específico:
+- `parse_tri5050_mgo3_dat_to_csv.py`
+
+Salidas finales:
+- `tri5050_mgo3_tc_master.csv`
+- `tri5050_mgo3_tc_phases_long.csv`
+
+### Resultado del parseo
+- `DAT files parsed: 5`
+- `Points parsed: 5050`
+- `Phases detected: 18`
+
+### Uso recomendado
+Este flujo sirve cuando se requiere:
+- cobertura sistemática y ordenada del espacio composicional
+- mapas ternarios reproducibles
+- comparación limpia entre composición y propiedades
+
+---
+
+## Corrida Monte Carlo: 5000 puntos desde rangos del dataset LF_final_clean
+Carpeta:
+`C:\Users\ELANOR\Documents\ThermoCalc_OpenClaw\run_2026-03-20_mc5000_from_lf_ranges`
+
+### Propósito
+Generar una nube de puntos aleatorios físicamente plausibles dentro del rango composicional observado en el dataset real `lf_final_clean_4oxide_source.csv`.
+
+### Rangos base usados (wt%)
+Tomados de:
+`C:\Users\ELANOR\Documents\ThermoCalc_OpenClaw\run_2026-3-20-conversion\lf_final_clean_4oxide_source.csv`
+
+```text
+CaO   : 24.459 – 65.230
+SiO2  :  1.656 – 22.641
+MgO   :  3.716 – 19.991
+Al2O3 :  3.332 – 31.234
+```
+
+### Estrategia de muestreo usada
+No se usó simplex uniforme.
+Se hizo exactamente este esquema:
+1. muestreo aleatorio uniforme dentro de la **caja** definida por los min/max de cada óxido
+2. cálculo de la suma total `CaO + SiO2 + MgO + Al2O3`
+3. conservación únicamente de puntos con suma cercana a `100 wt%`
+
+Parámetros:
+```text
+sum_target = 100 wt%
+sum_tol = 0.25 wt%
+seed = 20260320
+```
+
+### Rendimiento del muestreo
+Para obtener 5000 puntos válidos:
+- se probaron `600000` candidatos aleatorios
+- se conservaron `5000`
+
+### Rango real de los puntos aceptados
+En fracción masa:
+```text
+CaO   : 0.2732163795 – 0.6522981738
+SiO2  : 0.0167104335 – 0.2263463480
+MgO   : 0.0372836640 – 0.1998434146
+Al2O3 : 0.0336077347 – 0.3123352944
+```
+
+Suma cruda de aceptación:
+```text
+99.7503631061 – 100.2499336731 wt%
+```
+
+### Archivos generados
+En la carpeta base:
+- `mc5000_from_lf_ranges_points.csv`
+- `sampling_summary.txt`
+- `generate_mc5000_from_lf_ranges.py`
+- `run_mc5000_lf_ranges_chunk.py`
+- `README.txt`
+
+En:
+`chunks_5x1000_dat`
+- `mc5000_lf_ranges_chunk_01.tcm/.dat/.stdout.log`
+- `mc5000_lf_ranges_chunk_02.tcm/.dat/.stdout.log`
+- `mc5000_lf_ranges_chunk_03.tcm/.dat/.stdout.log`
+- `mc5000_lf_ranges_chunk_04.tcm/.dat/.stdout.log`
+- `mc5000_lf_ranges_chunk_05.tcm/.dat/.stdout.log`
+
+### Estado
+- 5 chunks corridos
+- todos terminaron con `RC=0`
+- `.dat` completos y consistentes
+
+### Parseo final
+Se creó parser específico:
+- `parse_mc5000_lf_ranges_dat_to_csv.py`
+
+Salidas finales:
+- `mc5000_lf_ranges_tc_master.csv`
+- `mc5000_lf_ranges_tc_phases_long.csv`
+
+### Resultado del parseo
+- `DAT files parsed: 5`
+- `Points parsed: 5000`
+- `Phases detected: 10`
+
+### Uso recomendado
+Este flujo sirve cuando se requiere:
+- explorar el dominio realista del dataset industrial
+- trabajar con una nube Monte Carlo más cercana al rango LF real
+- generar entrenamiento/screening sin imponer una malla regular ternaria
+
+---
+
+## Regla nueva: dos familias de muestreo útiles
+### 1. Malla triangular exacta
+Usar cuando se quieren:
+- mapas sistemáticos
+- cobertura regular del espacio composicional
+- análisis ternario limpio con un componente fijo
+
+### 2. Monte Carlo por rechazo desde rangos del dataset
+Usar cuando se quieren:
+- composiciones más parecidas a las del dataset real
+- puntos aleatorios dentro de una caja de rangos observados
+- filtrado por suma cercana a 100 wt%
+
+### Nota práctica importante
+El método Monte Carlo por rechazo **no** genera distribución uniforme en el simplex.
+Genera una nube condicionada por:
+- la caja de min/max del dataset
+- el criterio de aceptación por suma
+
+Eso está bien si el objetivo es emular composiciones industriales plausibles, no cubrir homogéneamente el ternario.
