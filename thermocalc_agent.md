@@ -65,6 +65,77 @@ HCP_A3
 
 ---
 
+## Regla de modelado: cuándo usar componentes óxido vs elementos
+Esta regla ya queda fija para futuros workflows.
+
+### Caso 1: sistemas de óxidos sin Fe / sin FeO explícito
+Si el sistema es puramente de óxidos, por ejemplo:
+- `CaO-SiO2-Al2O3-MgO`
+- sin `Fe`
+- sin `FeO`
+- sin metal líquido
+
+entonces el flujo preferido es:
+1. arrancar con `DEF-EL` en elementos para cargar la base
+2. entrar a `POLY`
+3. usar `DEFINE_COMPONENTS` con **óxidos**
+
+Ejemplo:
+```text
+DEF-EL
+CA SI AL MG O
+GET
+GO P-3
+REINITIATE_MODULE
+DEFINE_COMPONENTS CAO SIO2 AL2O3 MGO
+```
+
+Y luego imponer directamente condiciones tipo:
+```text
+W(CAO)
+W(SIO2)
+W(AL2O3)
+W(MGO)
+```
+
+### Caso 2: sistemas con Fe, FeO o mezcla escoria-metal
+Si el sistema incluye:
+- `Fe`
+- `FeO`
+- metal líquido
+- especies metálicas/óxidos mezclados
+- o requiere cerrar explícitamente el oxígeno a partir de composición elemental
+
+entonces el flujo preferido es trabajar en **componentes elementales** y cerrar el oxígeno mediante la relación estequiométrica de formación de óxidos.
+
+Ejemplo conceptual:
+```text
+DEF-EL
+CA MG SI AL MN FE O
+GET
+GO P-3
+```
+
+y luego imponer una relación de cierre de oxígeno tipo:
+```text
+X(O)-X(CA)-X(MG)-X(FE)-X(MN)-1.5*X(AL)-2*X(SI)=0
+```
+
+La idea física es:
+- cuando hay sistema con Fe/FeO, el oxígeno ya no debe tratarse como simple suma fija de óxidos puros en `DEFINE_COMPONENTS`
+- se debe cerrar estequiométricamente a partir de los elementos presentes y su oxidación efectiva
+
+### Regla resumida
+- **Sólo óxidos, sin Fe/FeO:** usar `DEFINE_COMPONENTS` con óxidos
+- **Con Fe, FeO o escoria-metal:** usar componentes elementales + relación estequiométrica de oxígeno
+
+### Motivo
+Esto evita dos errores frecuentes:
+1. usar modo óxidos en sistemas donde el balance de oxígeno debe resolverse a nivel elemental
+2. forzar modo elemental en sistemas de óxidos puros donde el flujo con `DEFINE_COMPONENTS` es más limpio, estable y físicamente interpretable
+
+---
+
 ## Sintaxis que sí funcionó en esta instalación
 La consola aceptó tanto sintaxis larga como legacy en varios casos, pero el patrón más estable fue el **legacy**:
 
