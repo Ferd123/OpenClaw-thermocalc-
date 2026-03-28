@@ -570,6 +570,172 @@ Interpretación:
 
 ---
 
+## Validación nueva confirmada: TCOX12 con `.log` y `.dat` precreados
+
+Carpeta de prueba:
+`C:\Users\ELANOR\Documents\ThermoCalc_OpenClaw\tcox12_2pt_probe`
+
+### Hallazgo operativo clave
+En esta instalación, para corridas batch en `TCOX12` con `SHOW_VALUE`, el patrón robusto confirmado fue:
+1. crear previamente el archivo `.log`
+2. crear previamente el archivo `.dat`
+3. declarar ambos con **ruta absoluta**
+4. usar:
+```text
+SET_GES_VERSION 6
+SET_ECHO
+SET_LOG_FILE "C:\\ruta\\absoluta\\archivo.stdout.log"
+...
+ADVA OUTPUT_FILE_FOR_SHOW "C:\\ruta\\absoluta\\archivo.dat"
+```
+
+### Macro de prueba validada
+Se validó una macro de **2 puntos** con:
+- `SWITCH_DATABASE TCOX12`
+- `DEFINE_ELEMENTS CA MG AL O F SI`
+- `DEFINE_COMPONENTS CAO MGO AL2O3 CAF2 SIO2`
+- `SET_CONDITION AC(O2,GAS)=0.2`
+- `LIST_EQUILIBRIUM ,,,`
+- `SHOW_VALUE W(CAO) W(MGO) W(AL2O3) W(CAF2) W(SIO2)`
+- `SHOW_VALUE DVIS(IONIC_LIQ)`
+- `SHOW_VALUE NP($)`
+- `SHOW_VALUE W($,*)`
+
+### Estado del arranque
+La consola mostró correctamente:
+```text
+TDB_TCOX12: ...
+*** Invoking Gibbs Energy System v6 ***
+```
+Lo cual confirma que el cálculo efectivo sí entró a **TCOX12 + GES6**.
+
+### Salidas confirmadas
+#### En `.stdout.log`
+Sí aparecieron:
+- `LIST_EQUILIBRIUM ,,,`
+- `DVIS(...)`
+- `NP($)`
+- `W($,*)`
+
+#### En `.dat`
+Sí quedaron las líneas evaluadas de `SHOW_VALUE`, no solo el eco del comando.
+
+Ejemplo real del `.dat`:
+```text
+W(CAO)=0.235
+W(MGO)=0.235
+W(AL2O3)=0.47
+W(CAF2)=5E-2
+W(SIO2)=1E-2
+DVIS(IONIC_LIQ#1)=7.7915512E-2
+NP(IONIC_LIQ#2)=0.82839111, NP(HALITE#1)=0.11003457, NP(SPINEL)=6.1574314E-2
+W(IONIC_LIQ#2,CAO)=0.27176813, W(IONIC_LIQ#2,MGO)=0.17021286, ...
+```
+
+### Observación importante sobre `DVIS`
+Aunque el líquido estable visible en `LIST_EQUILIBRIUM` puede aparecer como `IONIC_LIQ#2`, la línea:
+```text
+SHOW_VALUE DVIS(IONIC_LIQ)
+```
+se imprimió como:
+```text
+DVIS(IONIC_LIQ#1)=...
+```
+Esto debe documentarse y tratarse con cuidado en parser/postproceso. No asumir que el índice del set líquido reportado por `DVIS` coincide automáticamente con el líquido dominante visible en `LIST_EQUILIBRIUM`.
+
+### Punto 1 validado
+Condiciones:
+```text
+W(CAO)=0.235
+W(MGO)=0.235
+W(AL2O3)=0.47
+W(CAF2)=0.05
+W(SIO2)=0.01
+```
+Resultado:
+- `DVIS(IONIC_LIQ#1)=7.7915512E-2`
+- `NP(IONIC_LIQ#2)=0.82839111`
+- `NP(HALITE#1)=0.11003457`
+- `NP(SPINEL)=6.1574314E-2`
+
+### Punto 2 validado
+Condiciones:
+```text
+W(CAO)=0.3
+W(MGO)=0.15
+W(AL2O3)=0.49
+W(CAF2)=0.05
+W(SIO2)=0.01
+```
+Resultado:
+- `DVIS(IONIC_LIQ#1)=8.5670242E-2`
+- `NP(IONIC_LIQ#2)=1.`
+
+### Regla nueva confirmada para TCOX12 batch
+Para workflows batch de escoria en esta instalación:
+- preferir `TCOX12`
+- arrancar con `SET_GES_VERSION 6`
+- usar `.log` y `.dat` **precreados**
+- usar rutas absolutas
+- usar `ADVA OUTPUT_FILE_FOR_SHOW "ruta_absoluta"`
+- validar salida con una corrida corta antes de lanzar 5000 puntos
+
+### Regla nueva confirmada para mapas (`MAP` / exportación)
+Para macros de mapas en esta instalación, recordar:
+- usar también `TCOX12`
+- preparar previamente el archivo `.exp`
+- usar el flujo de exportación con `POST` en una línea y `M-E-D FILE "ruta" Y` en la siguiente; no concatenar `POST:M-E-D ...`
+- no asumir que `POST` + exportación funcionará limpio si el archivo destino no existe
+- documentar siempre la ruta absoluta del archivo de exportación
+
+### Hallazgo crítico nuevo para mapas de escoria
+El fallo inicial del macro de mapas NO era principalmente `m-e-d`, sino la definición incorrecta del sistema.
+
+#### Error cometido
+Para el sistema `CaO-MgO-Al2O3`, se estaba usando:
+```text
+DEFINE_ELEMENTS CA MG AL O F SI
+DEFINE_COMPONENTS CAO MGO AL2O3
+```
+Eso produjo errores como:
+- `ERROR 1622 IN QGSCMA: NO SUCH COMPONENT: CAO`
+- `ERROR 1622 IN QGSCMA: NO SUCH COMPONENT: MGO`
+- `ERROR 1599 IN QORMAP: TWO AXIS MUST BE DEFIND`
+- `POST: NO SUCH DATA: W(CAO)`
+- `POST: NO SUCH DATA: W(MGO)`
+
+#### Corrección validada
+Para el primer diagrama (`CaO-MgO-Al2O3`), el patrón funcional fue:
+```text
+DEFINE_ELEMENTS CA MG AL O
+DEF-COM CAO MGO AL2O3 O2
+S-C T=1873.15
+S-C P=101325
+S-C N=1
+S-C AC(O2,GAS)=0.2
+```
+Es decir:
+- NO incluir `F` ni `SI` si ese sistema no los contiene
+- usar `DEF-COM ... O2`
+- aplicar luego las `S-C`
+
+#### Regla por sistema
+- `CaO-MgO-Al2O3` → `DEFINE_ELEMENTS CA MG AL O`
+- sistemas con `CaF2` → agregar `F`
+- sistemas con `SiO2` → agregar `SI`
+- en mapas de escoria, definir componentes con `DEF-COM` e incluir `O2`
+
+#### Resultado de la corrección
+Con esa estructura desaparecieron los errores graves de componentes/ejes y el log pasó a mostrar:
+- creación válida de `W(CAO)` y `W(MGO)`
+- `Version S mapping is selected`
+- generación de start points
+- phase region boundaries reales
+
+Aún pueden aparecer algunos `ERROR 1611 when calculating equilibrium` en puntos de arranque, pero eso ya es un problema local de convergencia/start points y NO de sintaxis estructural del mapa.
+
+---
+
 ## Archivos relevantes
 ### Workspace
 - `C:\Users\ELANOR\.openclaw\workspace\thermocalc_agent.md`
