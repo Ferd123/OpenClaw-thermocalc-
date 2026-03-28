@@ -1,0 +1,628 @@
+
+SYS:SYS:SYS:Heading:SYS:   ... the command in full is GOTO_MODULE                             
+ THERMODYNAMIC DATABASE module
+ Database folder: C:\Program Files\Thermo-Calc\2025a\data
+ Current database: Steels/Fe-Alloys  v4.1
+ 
+ VA  DEFINED
+ IONIC_LIQ:Y  REJECTED
+ L12_FCC                 B2_BCC                  B2_VACANCY 
+ HIGH_SIGMA  REJECTED
+ 
+ *** WARNING: This database cannot be used with GES6, temporarily reverting to G
+ ES5
+ 
+TDB_TCFE4: Current database: Metal Oxide Solutions  v12.0
+ 
+ VA                      /-  DEFINED
+ PEROVSKITE:I  REJECTED
+TDB_TCOX12: CA                      MG                      AL
+ O                       F                       SI
+   DEFINED    
+TDB_TCOX12:09:10:19,298 [Thread-0] INFO  JavaWrapper: *** Invoking Gibbs Energy System v6 ***
+ REINITIATING GES .....
+ ELEMENTS .....
+ SPECIES ......
+ PHASES .......
+   ... the command in full is AMEND_PHASE_DESCRIPTION                 
+ Creating a new composition set IONIC_LIQ#2             
+   ... the command in full is AMEND_PHASE_DESCRIPTION                 
+ Creating a new composition set IONIC_LIQ#3             
+   ... the command in full is AMEND_PHASE_DESCRIPTION                 
+   ... the command in full is AMEND_PHASE_DESCRIPTION                 
+   ... the command in full is AMEND_PHASE_DESCRIPTION                 
+   ... the command in full is AMEND_PHASE_DESCRIPTION                 
+ AL+3 IN QUARTZ:I SUBLATTICE   1 REJECTED
+ AL+3 IN TRIDYMITE:I SUBLATTICE   1 REJECTED
+ AL+3 IN CRISTOBALITE:I SUBLATTICE   1 REJECTED
+ VA IN CA2SIO4_ALPHA_A:I SUBLATTICE   2 REJECTED
+ VA IN CA2SIO4_ALPHA_PRIME:I SUBLATTICE   2 REJECTED
+ VA IN HATRURITE:I SUBLATTICE   1 REJECTED
+ SI+4 IN ANORTHITE:I SUBLATTICE   3 REJECTED
+ MG+2 IN GARNET:I SUBLATTICE   2 REJECTED
+ AL+3 IN GARNET:I SUBLATTICE   3 REJECTED
+ MG+2 IN CORUNDUM:I SUBLATTICE   1 REJECTED
+ VA IN CORUNDUM:I SUBLATTICE   1 REJECTED
+   ... the command in full is AMEND_PHASE_DESCRIPTION                 
+   ... the command in full is AMEND_PHASE_DESCRIPTION                 
+   ... the command in full is AMEND_PHASE_DESCRIPTION                 
+ Creating a new composition set HALITE#2                
+ VA IN ALPHA_SPINEL:I SUBLATTICE   2 REJECTED
+   ... the command in full is AMEND_PHASE_DESCRIPTION                 
+   ... the command in full is AMEND_PHASE_DESCRIPTION                 
+ AL+3 IN ALPO4_S1:I SUBLATTICE   1 REJECTED
+ AL+3 IN ALPO4_S2:I SUBLATTICE   1 REJECTED
+ AL+3 IN ALPO4_S3:I SUBLATTICE   1 REJECTED
+ VA IN CA3P2O8_A:I SUBLATTICE   2 REJECTED
+ PARAMETERS ...
+ FUNCTIONS ....
+
+ Use the command LIST_REFERENCES to see the list of references for assessed data
+
+ -OK-
+TDB_TCOX12:TDB_TCOX12:   ... the command in full is GOTO_MODULE                             
+
+ POLY version  3.32
+POLY:POLY:   ... the command in full is DEFINE_COMPONENTS                       
+POLY:   ... the command in full is SET_CONDITION                           
+POLY:   ... the command in full is SET_CONDITION                           
+POLY:   ... the command in full is SET_CONDITION                           
+POLY:   ... the command in full is SET_CONDITION                           
+POLY:   ... the command in full is SET_CONDITION                           
+POLY:   ... the command in full is SET_CONDITION                           
+POLY:POLY:Which option? /STEP_AND_MAP/:  Settings for global minimization:
+   Use global minimization as much as possible /Y/:    Maximum number of gridpoints per phase /2000/: POLY:POLY: The condition W(CAO)=.11106  created
+POLY: The condition W(MGO)=.11106  created
+POLY:   ... the command in full is SET_CONDITION                           
+POLY:   ... the command in full is SET_CONDITION                           
+POLY:Automatic start values for phase constituents? /N/:  Automatic start values will be set
+POLY: Normal POLY minimization, not global
+ Testing POLY result by global minimization procedure
+Calculated         93106 grid points in      0.456 s
+   157 ITS,  CPU TIME USED  10 SECONDS
+POLY:POLY:POLY:POLY:POLY:POLY: Version S mapping is selected
+
+ Organizing start points
+
+Using ADDED start equilibria
+
+ Tie-lines not in the plane of calculation
+ Generating start point   1
+ Generating start point   2
+ Generating start point   3
+ Generating start point   4
+ Generating start point   5
+ Generating start point   6
+ Generating start point   7
+ Generating start point   8
+ Generating start point   9
+ Generating start point  10
+ Working hard
+ Generating start point  11
+ Generating start point  12
+ Generating start point  13
+ Generating start point  14
+ Generating start point  15
+ Generating start point  16
+ Generating start point  17
+ Generating start point  18
+ Generating start point  19
+ Generating start point  20
+ Working hard
+ Generating start point  21
+ Generating start point  22
+ Generating start point  23
+ Generating start point  24
+ Generating start point  25
+ Generating start point  26
+ Generating start point  27
+ Generating start point  28
+ Generating start point  29
+ Generating start point  30
+ Working hard
+ Working hard
+ Working hard
+ Generating start point  31
+ Generating start point  32
+ Generating start point  33
+ Generating start point  34
+
+ Phase region boundary   1 at:   2.642E-01  2.250E-01
+     IONIC_LIQ#2 
+     HALITE#1 
+  ** SPINEL 
+ Calculated.                      8  equilibria
+
+ Phase region boundary   2 at:   2.820E-01  1.793E-01
+     IONIC_LIQ#2 
+  ** HALITE#1 
+  ** SPINEL 
+
+ Phase region boundary   3 at:   2.820E-01  1.793E-01
+     IONIC_LIQ#2 
+  ** SPINEL 
+ Calculated.                     29  equilibria
+
+ Phase region boundary   4 at:   2.123E-01  3.285E-02
+     IONIC_LIQ#2 
+  ** C1A8M2 
+  ** SPINEL 
+
+ Phase region boundary   5 at:   2.123E-01  3.285E-02
+     IONIC_LIQ#2 
+     C1A8M2 
+  ** SPINEL 
+ Calculated.                     20  equilibria
+
+ Phase region boundary   6 at:   7.159E-02  7.246E-02
+     IONIC_LIQ#2 
+     C1A8M2 
+  ** CORUNDUM 
+  ** SPINEL 
+
+ Phase region boundary   7 at:   7.159E-02  7.246E-02
+     IONIC_LIQ#2 
+     C1A8M2 
+     CORUNDUM 
+  ** SPINEL 
+ Calculated.                     10  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary   8 at:   7.159E-02  7.246E-02
+     IONIC_LIQ#2 
+     C1A8M2 
+  ** CORUNDUM 
+ Calculated.                      3  equilibria
+
+ Phase region boundary   9 at:   8.238E-02  6.467E-02
+     IONIC_LIQ#2 
+     C1A8M2 
+  ** C2A14M2 
+  ** CORUNDUM 
+
+ Phase region boundary  10 at:   8.238E-02  6.467E-02
+     IONIC_LIQ#2 
+     C1A8M2 
+     C2A14M2 
+  ** CORUNDUM 
+ Calculated.                      4  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  11 at:   8.238E-02  6.467E-02
+     IONIC_LIQ#2 
+     C1A8M2 
+  ** C2A14M2 
+ Calculated.                     15  equilibria
+
+ Phase region boundary  12 at:   1.854E-01  2.839E-02
+     IONIC_LIQ#2 
+  ** C1A2 
+     C1A8M2 
+  ** C2A14M2 
+
+ Phase region boundary  13 at:   1.854E-01  2.839E-02
+     IONIC_LIQ#2 
+     C1A2 
+     C1A8M2 
+  ** C2A14M2 
+ Calculated.                      4  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  14 at:   1.854E-01  2.839E-02
+     IONIC_LIQ#2 
+  ** C1A2 
+     C1A8M2 
+ Calculated.                      5  equilibria
+
+ Phase region boundary  15 at:   2.124E-01  3.220E-02
+     IONIC_LIQ#2 
+  ** C1A2 
+  ** C1A8M2 
+
+ Phase region boundary  16 at:   2.124E-01  3.220E-02
+     IONIC_LIQ#2 
+  ** C1A2 
+ Calculated                     30  equilibria
+
+ Phase region boundary  17 at:   2.124E-01  3.220E-02
+     IONIC_LIQ#2 
+  ** C1A8M2 
+ Calculated.                      2  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  18 at:   2.124E-01  3.220E-02
+     IONIC_LIQ#2 
+     C1A2 
+  ** C1A8M2 
+ Calculated.                      3  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  19 at:   1.854E-01  2.839E-02
+     IONIC_LIQ#2 
+  ** C1A2 
+     C1A8M2 
+     C2A14M2 
+ Calculated.                      2  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  20 at:   8.238E-02  6.467E-02
+     IONIC_LIQ#2 
+     C1A8M2 
+  ** C2A14M2 
+     CORUNDUM 
+ Calculated.                      9  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  21 at:   7.159E-02  7.246E-02
+     IONIC_LIQ#2 
+     C1A8M2 
+  ** CORUNDUM 
+     SPINEL 
+ Calculated.                     10  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  22 at:   2.123E-01  3.285E-02
+     IONIC_LIQ#2 
+  ** C1A8M2 
+     SPINEL 
+ Calculated.                     25  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  23 at:   2.820E-01  1.793E-01
+     IONIC_LIQ#2 
+  ** HALITE#1 
+ Calculated.                     43  equilibria
+
+ Phase region boundary  24 at:   5.250E-01  9.985E-02
+     IONIC_LIQ#2 
+  ** HALITE#1 
+  ** HALITE#2 
+
+ Phase region boundary  25 at:   5.250E-01  9.985E-02
+     IONIC_LIQ#2 
+  ** HALITE#1 
+     HALITE#2 
+ Calculated                     76  equilibria
+
+ Phase region boundary  26 at:   5.250E-01  9.985E-02
+     IONIC_LIQ#2 
+  ** HALITE#2 
+ Calculated                     36  equilibria
+
+ Phase region boundary  27 at:   5.250E-01  9.985E-02
+     IONIC_LIQ#2 
+     HALITE#1 
+  ** HALITE#2 
+ Calculated                    128  equilibria
+
+ Phase region boundary  28 at:   2.820E-01  1.793E-01
+     IONIC_LIQ#2 
+  ** HALITE#1 
+     SPINEL 
+ Calculated..                     42  equilibria
+ Terminating at axis limit.
+
+ Phase region boundary  29 at:   2.820E-01  1.793E-01
+     IONIC_LIQ#2 
+     HALITE#1 
+  ** SPINEL 
+ Calculated..                     85  equilibria
+ Terminating at axis limit.
+
+ Phase region boundary  30 at:   2.642E-01  2.250E-01
+     IONIC_LIQ#2 
+     HALITE#1 
+  ** SPINEL 
+ Calculated..                     79  equilibria
+ Terminating at known equilibrium
+ Terminating at axis limit.
+
+ Phase region boundary  31 at:   1.890E-01  2.250E-01
+     IONIC_LIQ#2 
+  ** HALITE#1 
+     SPINEL 
+ Calculated.                     14  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  32 at:   1.890E-01  2.250E-01
+     IONIC_LIQ#2 
+  ** HALITE#1 
+     SPINEL 
+ Calculated..                     30  equilibria
+ Terminating at known equilibrium
+ Terminating at axis limit.
+
+ Phase region boundary  33 at:   2.250E-01  3.253E-01
+     IONIC_LIQ#2 
+     HALITE#1 
+  ** SPINEL 
+ Calculated                    106  equilibria
+
+ Phase region boundary  34 at:   2.250E-01  3.253E-01
+     IONIC_LIQ#2 
+     HALITE#1 
+  ** SPINEL 
+ Calculated.                     31  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  35 at:   3.802E-02  3.561E-02
+     IONIC_LIQ#2 
+  ** C1A8M2 
+     CORUNDUM 
+     SPINEL 
+ Calculated.                      3  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  36 at:   3.802E-02  3.561E-02
+     IONIC_LIQ#2 
+  ** C1A8M2 
+     CORUNDUM 
+     SPINEL 
+ Calculated.                     12  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  37 at:   4.595E-02  3.561E-02
+     IONIC_LIQ#2 
+     C1A8M2 
+     CORUNDUM 
+  ** SPINEL 
+ Calculated.                      3  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  38 at:   4.595E-02  3.561E-02
+     IONIC_LIQ#2 
+     C1A8M2 
+     CORUNDUM 
+  ** SPINEL 
+ Calculated.                      6  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  39 at:   6.216E-02  3.561E-02
+     IONIC_LIQ#2 
+     C1A8M2 
+  ** C2A14M2 
+     CORUNDUM 
+ Calculated.                      4  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  40 at:   6.216E-02  3.561E-02
+     IONIC_LIQ#2 
+     C1A8M2 
+  ** C2A14M2 
+     CORUNDUM 
+ Calculated.                      5  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  41 at:   7.356E-02  3.561E-02
+     IONIC_LIQ#2 
+  ** C1A8M2 
+     C2A14M2 
+     CORUNDUM 
+ Calculated.                      5  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  42 at:   7.356E-02  3.561E-02
+     IONIC_LIQ#2 
+  ** C1A8M2 
+     C2A14M2 
+     CORUNDUM 
+ Calculated.                      4  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  43 at:   8.177E-02  3.561E-02
+     IONIC_LIQ#2 
+  ** C1A6 
+     C2A14M2 
+     CORUNDUM 
+ Calculated.                      6  equilibria
+
+ Phase region boundary  44 at:   5.570E-02  1.687E-02
+     IONIC_LIQ#2 
+  ** C1A6 
+  ** C2A14M2 
+     CORUNDUM 
+
+ Phase region boundary  45 at:   5.570E-02  1.687E-02
+     IONIC_LIQ#2 
+  ** C1A6 
+     CORUNDUM 
+ Calculated                     17  equilibria
+
+ Phase region boundary  46 at:   5.570E-02  1.687E-02
+     IONIC_LIQ#2 
+  ** C2A14M2 
+     CORUNDUM 
+ Calculated.                      2  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  47 at:   5.570E-02  1.687E-02
+     IONIC_LIQ#2 
+     C1A6 
+  ** C2A14M2 
+     CORUNDUM 
+ Calculated.                      7  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  48 at:   5.570E-02  1.687E-02
+     IONIC_LIQ#2 
+  ** C1A6 
+     C2A14M2 
+     CORUNDUM 
+ Calculated.                      8  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  49 at:   8.177E-02  3.561E-02
+     IONIC_LIQ#2 
+  ** C1A6 
+     C2A14M2 
+     CORUNDUM 
+ Calculated.                      3  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  50 at:   9.429E-02  3.561E-02
+     IONIC_LIQ#2 
+     C1A6 
+     C2A14M2 
+  ** CORUNDUM 
+ Calculated.                      4  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  51 at:   9.429E-02  3.561E-02
+     IONIC_LIQ#2 
+     C1A6 
+     C2A14M2 
+  ** CORUNDUM 
+ Calculated.                      2  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  52 at:   1.236E-01  3.561E-02
+     IONIC_LIQ#2 
+  ** C1A6 
+     C2A14M2 
+ Calculated.                     10  equilibria
+
+ Phase region boundary  53 at:   1.839E-01  2.306E-02
+     IONIC_LIQ#2 
+  ** C1A2 
+  ** C1A6 
+     C2A14M2 
+
+ Phase region boundary  54 at:   1.839E-01  2.306E-02
+     IONIC_LIQ#2 
+     C1A2 
+  ** C1A6 
+     C2A14M2 
+ Calculated.                      4  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  55 at:   1.839E-01  2.306E-02
+     IONIC_LIQ#2 
+  ** C1A2 
+     C2A14M2 
+ Calculated.                      2  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  56 at:   1.839E-01  2.306E-02
+     IONIC_LIQ#2 
+  ** C1A2 
+     C1A6 
+     C2A14M2 
+ Calculated.                      2  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  57 at:   1.839E-01  2.306E-02
+     IONIC_LIQ#2 
+  ** C1A6 
+     C2A14M2 
+ Calculated.                     14  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  58 at:   1.236E-01  3.561E-02
+     IONIC_LIQ#2 
+  ** C1A6 
+     C2A14M2 
+ Calculated.                      6  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  59 at:   1.316E-01  3.561E-02
+     IONIC_LIQ#2 
+  ** C1A8M2 
+     C2A14M2 
+ Calculated.                      9  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  60 at:   1.316E-01  3.561E-02
+     IONIC_LIQ#2 
+  ** C1A8M2 
+     C2A14M2 
+ Calculated.                      7  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  61 at:   1.647E-01  3.561E-02
+     IONIC_LIQ#2 
+     C1A8M2 
+  ** C2A14M2 
+ Calculated.                      5  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  62 at:   1.647E-01  3.561E-02
+     IONIC_LIQ#2 
+     C1A8M2 
+  ** C2A14M2 
+ Calculated.                     16  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  63 at:   2.033E-01  3.561E-02
+     IONIC_LIQ#2 
+     C1A8M2 
+  ** SPINEL 
+ Calculated.                      3  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  64 at:   2.033E-01  3.561E-02
+     IONIC_LIQ#2 
+     C1A8M2 
+  ** SPINEL 
+ Calculated.                     27  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  65 at:   2.090E-01  3.561E-02
+     IONIC_LIQ#2 
+  ** C1A8M2 
+     SPINEL 
+ Calculated.                      2  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  66 at:   2.090E-01  3.561E-02
+     IONIC_LIQ#2 
+  ** C1A8M2 
+     SPINEL 
+ Calculated.                     37  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  67 at:   2.249E-01  3.561E-02
+     IONIC_LIQ#2 
+  ** SPINEL 
+ Calculated.                      3  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  68 at:   2.249E-01  3.561E-02
+     IONIC_LIQ#2 
+  ** SPINEL 
+ Calculated.                     28  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  69 at:   2.250E-01  3.565E-02
+     IONIC_LIQ#2 
+  ** SPINEL 
+ Calculated.                      3  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  70 at:   2.250E-01  3.565E-02
+     IONIC_LIQ#2 
+  ** SPINEL 
+ Calculated.                     29  equilibria
+ Terminating at known equilibrium
+
+ Phase region boundary  71 at:   2.250E-01  2.073E-01
+     IONIC_LIQ#2 
+  ** HALITE#1 
+     SPINEL 
+ Calculated                     47  equilibria
+
+ Phase region boundary  72 at:   2.250E-01  2.073E-01
+     IONIC_LIQ#2 
+  ** HALITE#1 
+     SPINEL 
+ Calculated.                      9  equilibria
+ Terminating at known equilibrium
+ *** BUFFER SAVED ON FILE: C:\Users\ELANOR\Documents\ThermoCalc_OpenClaw\oxide_macros_tcox12\maps\CAMA_5CAF2_5SIO2\CAMA_5CAF2_5SIO2.POLY3
+ CPU time for mapping                    82  seconds
+POLY:  POLY-3 POSTPROCESSOR VERSION 3.2
+
+ Setting automatic diagram axes 
+
+POST:  No such command, use HELP
+POST: NOT A RECOGNIZED OUTPUT FORMAT!
+POST:POLY: CPU time                    104  seconds
+WARN StatusConsoleListener Unable to register Log4j shutdown hook because JVM is shutting down. Using SimpleLogger
