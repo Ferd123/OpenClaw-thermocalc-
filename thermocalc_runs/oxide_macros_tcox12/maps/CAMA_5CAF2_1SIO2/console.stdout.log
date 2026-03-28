@@ -19,7 +19,7 @@ TDB_TCFE4: Current database: Metal Oxide Solutions  v12.0
 TDB_TCOX12: CA                      MG                      AL
  O                       F                       SI
    DEFINED    
-TDB_TCOX12:08:58:51,329 [Thread-0] INFO  JavaWrapper: *** Invoking Gibbs Energy System v6 ***
+TDB_TCOX12:10:58:41,654 [Thread-0] INFO  JavaWrapper: *** Invoking Gibbs Energy System v6 ***
  REINITIATING GES .....
  ELEMENTS .....
  SPECIES ......
@@ -78,9 +78,14 @@ POLY:   ... the command in full is SET_CONDITION
 POLY:Automatic start values for phase constituents? /N/:  Automatic start values will be set
 POLY: Normal POLY minimization, not global
  Testing POLY result by global minimization procedure
-Calculated         93106 grid points in      0.427 s
+Calculated         93106 grid points in      0.418 s
    167 ITS,  CPU TIME USED   8 SECONDS
-POLY:POLY:POLY:POLY:POLY:POLY: Version S mapping is selected
+POLY:POLY:POLY:POLY:POLY:
+ This file contains results from a previous STEP or MAP command.
+ The SAVE command will save the current status of the program but destroy
+ the results from the previous STEP or MAP commands.
+
+POLY: Version S mapping is selected
 
  Organizing start points
 
@@ -563,12 +568,12 @@ Using ADDED start equilibria
  Calculated.                      7  equilibria
  Terminating at known equilibrium
  *** BUFFER SAVED ON FILE: C:\Users\ELANOR\Documents\ThermoCalc_OpenClaw\oxide_macros_tcox12\maps\CAMA_5CAF2_1SIO2\CAMA_5CAF2_1SIO2.POLY3
- CPU time for mapping                    41  seconds
+ CPU time for mapping                    42  seconds
 POLY:  POLY-3 POSTPROCESSOR VERSION 3.2
 
  Setting automatic diagram axes 
 
-POST:  No such command, use HELP
+POST:   ... the command in full is MAKE_EXPERIMENTAL_DATAFI                
 POST: NOT A RECOGNIZED OUTPUT FORMAT!
 POST:POLY: CPU time                     61  seconds
 WARN StatusConsoleListener Unable to register Log4j shutdown hook because JVM is shutting down. Using SimpleLogger

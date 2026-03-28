@@ -18,7 +18,7 @@ TDB_TCFE4: Current database: Metal Oxide Solutions  v12.0
  PEROVSKITE:I  REJECTED
 TDB_TCOX12: CA                      MG                      AL
  O                       F  DEFINED    
-TDB_TCOX12:08:56:58,335 [Thread-0] INFO  JavaWrapper: *** Invoking Gibbs Energy System v6 ***
+TDB_TCOX12:10:58:07,520 [Thread-0] INFO  JavaWrapper: *** Invoking Gibbs Energy System v6 ***
  REINITIATING GES .....
  ELEMENTS .....
  SPECIES ......
@@ -61,9 +61,14 @@ POLY:   ... the command in full is SET_CONDITION
 POLY:Automatic start values for phase constituents? /N/:  Automatic start values will be set
 POLY: Normal POLY minimization, not global
  Testing POLY result by global minimization procedure
-Calculated         62774 grid points in      0.426 s
-   152 ITS,  CPU TIME USED   7 SECONDS
-POLY:POLY:POLY:POLY:POLY:POLY: Version S mapping is selected
+Calculated         62774 grid points in      0.401 s
+   152 ITS,  CPU TIME USED   9 SECONDS
+POLY:POLY:POLY:POLY:POLY:
+ This file contains results from a previous STEP or MAP command.
+ The SAVE command will save the current status of the program but destroy
+ the results from the previous STEP or MAP commands.
+
+POLY: Version S mapping is selected
 
  Organizing start points
 
@@ -536,12 +541,12 @@ Using ADDED start equilibria
  Calculated.                      7  equilibria
  Terminating at known equilibrium
  *** BUFFER SAVED ON FILE: C:\Users\ELANOR\Documents\ThermoCalc_OpenClaw\oxide_macros_tcox12\maps\CAMA_5CAF2\CAMA_5CAF2.POLY3
- CPU time for mapping                    33  seconds
+ CPU time for mapping                    37  seconds
 POLY:  POLY-3 POSTPROCESSOR VERSION 3.2
 
  Setting automatic diagram axes 
 
-POST:  No such command, use HELP
+POST:   ... the command in full is MAKE_EXPERIMENTAL_DATAFI                
 POST: NOT A RECOGNIZED OUTPUT FORMAT!
-POST:POLY: CPU time                     51  seconds
+POST:POLY: CPU time                     58  seconds
 WARN StatusConsoleListener Unable to register Log4j shutdown hook because JVM is shutting down. Using SimpleLogger

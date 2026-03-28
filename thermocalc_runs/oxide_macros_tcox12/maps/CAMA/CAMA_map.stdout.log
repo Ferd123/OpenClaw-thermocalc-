@@ -33,7 +33,7 @@ ADD_INITIAL_EQUILIBRIUM -2>
 SAVE_WORKSPACES "C:\Users\ELANOR\Documents\ThermoCalc_OpenClaw\oxide_macros_tcox12\maps\CAMA\CAMA.POLY3" Y
 MAP
 POST
-POST:M-E-D FILE "C:\Users\ELANOR\Documents\ThermoCalc_OpenClaw\oxide_macros_tcox12\maps\CAMA\CAMA_map.exp" Y
+M-E-D FILE "C:\Users\ELANOR\Documents\ThermoCalc_OpenClaw\oxide_macros_tcox12\maps\CAMA\CAMA_map.exp" Y
 DUMP_DIAGRAM JPG "C:\Users\ELANOR\Documents\ThermoCalc_OpenClaw\oxide_macros_tcox12\maps\CAMA\map_CAMA.jpg"
 BACK
 EXIT
