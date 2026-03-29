@@ -8,6 +8,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import mpltern
 import numpy as np
+from matplotlib.lines import Line2D
 
 BASE = Path(r"C:\Users\ELANOR\Documents\ThermoCalc_OpenClaw\oxide_macros_tcox12\maps")
 SYSTEMS = [
@@ -39,7 +40,7 @@ mpl.rcParams.update({
     'axes.titlesize': 10,
     'xtick.labelsize': 8,
     'ytick.labelsize': 8,
-    'legend.fontsize': 8,
+    'legend.fontsize': 7,
     'axes.linewidth': 0.8,
     'lines.linewidth': 1.2,
 })
@@ -63,17 +64,11 @@ PHASE_REMAP = {
     'C1A6': 'CA6',
     'CORUNDUM': 'Alúmina',
 }
-PHASE_COLORS = {
-    'Líquido': '#1f77b4',
-    'MgO': '#ff7f0e',
-    'CaO': '#d62728',
-    'Espinela': '#2ca02c',
-    'CA2': '#9467bd',
-    'CA8M2': '#8c564b',
-    'C2A14M2': '#e377c2',
-    'CA6': '#7f7f7f',
-    'Alúmina': '#bcbd22',
-}
+PALETTE = [
+    '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+    '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
+    '#393b79', '#637939', '#8c6d31', '#843c39', '#7b4173'
+]
 
 
 def parse_exp(path: Path):
@@ -139,25 +134,22 @@ def pretty_phase_text(phases):
     return ' + '.join(dedup)
 
 
-def color_for_label(label: str):
-    for key, color in PHASE_COLORS.items():
-        if key in label:
-            return color
-    return '#333333'
-
-
 def line_to_ternary(seg_xy, fixed):
     pts = []
     for cao, mgo in seg_xy:
         al2o3 = 100.0 - cao - mgo - fixed['CAF2'] - fixed['SIO2']
         if al2o3 < -1e-8:
             continue
-        # mpltern convention for this project now:
-        # t = Al2O3*
-        # l = CaO
-        # r = MgO
         pts.append((al2o3, cao, mgo))
     return pts
+
+
+def build_color_map(labels):
+    uniq = sorted(set(labels))
+    cmap = {}
+    for i, lab in enumerate(uniq):
+        cmap[lab] = PALETTE[i % len(PALETTE)]
+    return cmap
 
 
 def plot_system(tag: str):
@@ -166,7 +158,19 @@ def plot_system(tag: str):
     blocks, labels = parse_exp(exp_path)
     fixed = FIXED[tag]
 
-    fig = plt.figure(figsize=(SINGLE_COLUMN_MM * MM_TO_INCH, SINGLE_COLUMN_MM * MM_TO_INCH))
+    line_groups = defaultdict(list)
+    for block in blocks:
+        label = pretty_phase_text(block['phases'])
+        for seg in block['segments']:
+            if len(seg) < 2:
+                continue
+            pts = line_to_ternary(seg, fixed)
+            if len(pts) >= 2:
+                line_groups[label].append(np.array(pts))
+
+    color_map = build_color_map(line_groups.keys())
+
+    fig = plt.figure(figsize=(SINGLE_COLUMN_MM * MM_TO_INCH * 1.35, SINGLE_COLUMN_MM * MM_TO_INCH * 1.15))
     ax = fig.add_subplot(111, projection='ternary', ternary_sum=TERNARY_SCALE)
     ax.set_tlabel('Al2O3* (wt.%)')
     ax.set_llabel('CaO (wt.%)')
@@ -177,22 +181,15 @@ def plot_system(tag: str):
     ax.raxis.set_ticks(ticks)
     ax.grid(True, linestyle='--', linewidth=0.5, alpha=0.6)
 
-    line_groups = defaultdict(list)
-    for block in blocks:
-        for seg in block['segments']:
-            if len(seg) < 2:
-                continue
-            pts = line_to_ternary(seg, fixed)
-            if len(pts) >= 2:
-                line_groups[pretty_phase_text(block['phases'])].append(np.array(pts))
-
+    legend_handles = []
     for label, segs in line_groups.items():
-        color = color_for_label(label)
+        color = color_map[label]
         for seg in segs:
             t = seg[:, 0]
             l = seg[:, 1]
             r = seg[:, 2]
             ax.plot(t, l, r, color=color, linewidth=1.05, alpha=0.95)
+        legend_handles.append(Line2D([0], [0], color=color, lw=1.4, label=label))
 
     for x, y, text in labels:
         cao = x * 100.0
@@ -201,10 +198,11 @@ def plot_system(tag: str):
         if al2o3 < 0:
             continue
         pretty = pretty_phase_text(text.split('+'))
-        ax.text(al2o3, cao, mgo, pretty, fontsize=6.5, ha='left', va='bottom', color=color_for_label(pretty))
+        color = color_map.get(pretty, '#333333')
+        ax.text(al2o3, cao, mgo, pretty, fontsize=6.0, ha='left', va='bottom', color=color)
 
-    title = f'{tag} phase diagram from EXP\nAl2O3* = 100 - CaO - MgO - CaF2 - SiO2'
-    ax.set_title(title, pad=12)
+    ax.set_title(f'{tag} phase diagram from EXP\nAl2O3* = 100 - CaO - MgO - CaF2 - SiO2', pad=12)
+    fig.legend(handles=legend_handles, loc='center left', bbox_to_anchor=(0.98, 0.5), frameon=True, title='Color → phase field')
     plt.tight_layout()
     out_png = run_dir / f'{tag}_exp_ternary_definitive.png'
     out_svg = run_dir / f'{tag}_exp_ternary_definitive.svg'
