@@ -33,11 +33,11 @@ mpl.rcParams.update({
     'font.family': 'serif',
     'font.serif': ['Times New Roman'],
     'axes.labelsize': 10,
-    'xtick.labelsize': 9,
-    'ytick.labelsize': 9,
+    'xtick.labelsize': 10,
+    'ytick.labelsize': 10,
     'axes.titlesize': 10,
     'axes.linewidth': 1.0,
-    'lines.linewidth': 1.0,
+    'lines.linewidth': 1.2,
     'xtick.direction': 'inout',
     'ytick.direction': 'inout',
     'xtick.major.size': 4,
@@ -47,10 +47,6 @@ mpl.rcParams.update({
     'figure.dpi': 600,
     'savefig.dpi': 600,
     'svg.fonttype': 'none',
-    'mathtext.fontset': 'custom',
-    'mathtext.rm': 'Times New Roman',
-    'mathtext.it': 'Times New Roman:italic',
-    'mathtext.bf': 'Times New Roman:bold',
 })
 
 BLOCK_START_RE = re.compile(r'^\s*\$ BLOCK')
@@ -63,14 +59,25 @@ PHASE_REMAP = {
     'IONIC_LIQ#1': 'Líquido',
     'IONIC_LIQ#2': 'Líquido',
     'IONIC_LIQ#3': 'Líquido',
-    'HALITE#1': 'Halita#1',
-    'HALITE#2': 'Halita#2',
+    'HALITE#1': 'MgO',
+    'HALITE#2': 'CaO',
     'SPINEL': 'Espinela',
     'C1A2': 'CA2',
     'C1A8M2': 'CA8M2',
     'C2A14M2': 'C2A14M2',
     'C1A6': 'CA6',
     'CORUNDUM': 'Alúmina',
+}
+PHASE_COLORS = {
+    'Líquido': '#1f77b4',
+    'MgO': '#ff7f0e',
+    'CaO': '#d62728',
+    'Espinela': '#2ca02c',
+    'CA2': '#9467bd',
+    'CA8M2': '#8c564b',
+    'C2A14M2': '#e377c2',
+    'CA6': '#7f7f7f',
+    'Alúmina': '#bcbd22',
 }
 
 
@@ -180,20 +187,29 @@ def draw_triangle(ax):
     tri = np.array([[0,0],[1,0],[0.5,h],[0,0]])
     ax.plot(tri[:,0], tri[:,1], color='black', linewidth=1.0)
     step = 10
+    tick_len = 0.015
+    txt_off = 0.035
     for val in range(step, 100, step):
         frac = val/100.0
-        # grid for Al2O3 constant
         p1 = ternary_xy(1-frac, 0, frac)
         p2 = ternary_xy(0, 1-frac, frac)
         ax.plot([p1[0], p2[0]], [p1[1], p2[1]], color='0.85', linewidth=0.6)
-        # grid for CaO constant
         p1 = ternary_xy(frac, 0, 1-frac)
         p2 = ternary_xy(frac, 1-frac, 0)
         ax.plot([p1[0], p2[0]], [p1[1], p2[1]], color='0.85', linewidth=0.6)
-        # grid for MgO constant
         p1 = ternary_xy(0, frac, 1-frac)
         p2 = ternary_xy(1-frac, frac, 0)
         ax.plot([p1[0], p2[0]], [p1[1], p2[1]], color='0.85', linewidth=0.6)
+        # base ticks (CaO-MgO edge)
+        x, y = ternary_xy(frac, 0, 1-frac)
+        ax.plot([x, x], [y, y-tick_len], color='black', linewidth=0.7)
+        ax.text(x, y-txt_off, f'{val}', ha='center', va='top', fontsize=10)
+        # left edge ticks (CaO)
+        x, y = ternary_xy(0, 1-frac, frac)
+        ax.text(x-0.03, y, f'{val}', ha='right', va='center', fontsize=10)
+        # right edge ticks (MgO)
+        x, y = ternary_xy(1-frac, frac, 0)
+        ax.text(x+0.03, y, f'{val}', ha='left', va='center', fontsize=10)
     ax.text(-0.08, -0.04, 'CaO', ha='left', va='top', fontsize=13)
     ax.text(1.08, -0.04, 'MgO', ha='right', va='top', fontsize=13)
     ax.text(0.5, h+0.04, 'Al2O3', ha='center', va='bottom', fontsize=13)
@@ -213,6 +229,13 @@ def pretty_phase_text(phases):
         if p not in dedup:
             dedup.append(p)
     return ' + '.join(dedup)
+
+
+def color_for_label(label: str):
+    for key, color in PHASE_COLORS.items():
+        if key in label:
+            return color
+    return '#333333'
 
 
 def plot_system(tag: str):
@@ -249,24 +272,21 @@ def plot_system(tag: str):
         if len(block['phases']) == 1 and 'IONIC_LIQ' in block['phases'][0]:
             liquid_regions.extend(segs_xy)
 
-    # fill liquid regions if closed
     for polyline in stitch_segments_xy(liquid_regions, tol=5e-3):
         if len(polyline) < 3:
             continue
         if np.hypot(polyline[0,0]-polyline[-1,0], polyline[0,1]-polyline[-1,1]) > 5e-3:
             continue
-        poly = Polygon(polyline, closed=True, facecolor='#ADD8E6', edgecolor='none', alpha=0.25, zorder=0)
+        poly = Polygon(polyline, closed=True, facecolor='#ADD8E6', edgecolor='none', alpha=0.22, zorder=0)
         tri_patch = Polygon(triangle[:3], closed=True, transform=ax.transData)
         poly.set_clip_path(tri_patch)
         ax.add_patch(poly)
 
     for label, segs in line_groups.items():
-        first = True
+        color = color_for_label(label)
         for seg in segs:
-            ax.plot(seg[:,0], seg[:,1], color='black', linewidth=0.9, alpha=0.95, label=label if first else '_nolegend_')
-            first = False
+            ax.plot(seg[:,0], seg[:,1], color=color, linewidth=1.1, alpha=0.95)
 
-    # annotate phase labels from exp label dump
     for x, y, text in labels:
         al2o3 = 1.0 - x - y - fixed['CAF2'] - fixed['SIO2']
         if al2o3 < 0:
@@ -275,8 +295,9 @@ def plot_system(tag: str):
         if xy is None:
             continue
         pretty = pretty_phase_text(text.split('+'))
-        ax.text(xy[0], xy[1], pretty, fontsize=6.5, ha='center', va='center',
-                bbox=dict(facecolor='white', alpha=0.65, edgecolor='none', pad=0.35), zorder=10)
+        ax.text(xy[0], xy[1], pretty, fontsize=6.2, ha='center', va='center',
+                color=color_for_label(pretty),
+                bbox=dict(facecolor='white', alpha=0.68, edgecolor='none', pad=0.35), zorder=10)
 
     title = f'{tag} phase diagram from EXP\nAl2O3* = 1 - CaO - MgO - CaF2 - SiO2'
     ax.set_title(title, fontsize=10)
