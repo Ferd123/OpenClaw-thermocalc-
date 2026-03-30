@@ -1,0 +1,21 @@
+region_id,assemblage,n_grid_points,approx_area,is_minor,show_in_legend,has_internal_label,label_mode,numeric_id,label_text,color
+R01,L + MgO,1478,2923.0,False,True,True,text,,L + MgO,#4C78A8
+R02,L + CaO + MgO,1238,2315.0,False,True,True,text,,L + CaO + MgO,#F58518
+R03,L + MgO + Spinel,955,1903.0,False,True,True,text,,L + MgO + Spinel,#54A24B
+R04,L + Spinel,583,1164.0,False,True,True,text,,L + Spinel,#E45756
+R05,L,450,898.0,False,True,True,text,,L,#B279A2
+R06,L + CA8M2 + Spinel,70,138.0,False,True,True,number,1,L + CA8M2 + Spinel,#FF9DA6
+R07,L + Corundum + Spinel,56,110.0,False,True,True,number,2,L + Corundum + Spinel,#9D755D
+R08,L + Corundum,23,41.0,False,True,True,number,3,L + Corundum,#BAB0AC
+R09,L + C2A14M2 + CA6,20,38.0,False,True,True,number,4,L + C2A14M2 + CA6,#72B7B2
+R10,L + CA2,18,34.0,False,True,True,number,5,L + CA2,#EECA3B
+R11,L + CA6,18,34.0,False,True,True,number,6,L + CA6,#A0CBE8
+R12,L + CA8M2 + Corundum + Spinel,16,30.0,False,True,True,number,7,L + CA8M2 + Corundum + Spinel,#FFBE7D
+R13,L + CA8M2,14,26.0,False,True,True,number,8,L + CA8M2,#8CD17D
+R14,L + C2A14M2 + CA8M2,14,24.0,False,True,True,number,9,L + C2A14M2 + CA8M2,#B6992D
+R15,L + CA6 + Corundum,10,18.0,False,True,True,number,10,L + CA6 + Corundum,#499894
+R16,L + CA8M2 + Corundum,8,14.0,True,False,True,number,11,L + CA8M2 + Corundum,#D9D9D9
+R17,L + C2A14M2 + CA6 + Corundum,8,14.0,True,False,True,number,12,L + C2A14M2 + CA6 + Corundum,#D9D9D9
+R18,L + C2A14M2 + CA8M2 + Corundum,6,10.0,True,False,True,number,13,L + C2A14M2 + CA8M2 + Corundum,#D9D9D9
+R19,L + CA2 + CA6,5,8.0,True,False,True,number,14,L + CA2 + CA6,#D9D9D9
+R20,L + CA2 + CA8M2,3,4.0,True,False,True,number,15,L + CA2 + CA8M2,#D9D9D9

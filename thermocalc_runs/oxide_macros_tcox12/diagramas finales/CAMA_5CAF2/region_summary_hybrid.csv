@@ -1,0 +1,25 @@
+region_id,assemblage,n_grid_points,approx_area,is_minor,show_in_legend,has_internal_label,label_mode,numeric_id,label_text,color
+R01,L + CaO + MgO,1498,2990.0,False,True,True,text,,L + CaO + MgO,#4C78A8
+R02,L + MgO,1371,2732.0,False,True,True,text,,L + MgO,#F58518
+R03,L + MgO + Spinel,909,1815.0,False,True,True,text,,L + MgO + Spinel,#54A24B
+R04,L,356,706.0,False,True,True,text,,L,#E45756
+R05,L + Spinel,333,664.0,False,True,True,text,,L + Spinel,#B279A2
+R06,L + HALITE#3 + MgO,136,270.0,False,True,True,text,,L + HALITE#3 + MgO,#FF9DA6
+R07,L + CA8M2 + Spinel,76,150.0,False,True,True,number,1,L + CA8M2 + Spinel,#9D755D
+R08,L + CA2 + Spinel,67,134.0,False,True,True,number,2,L + CA2 + Spinel,#BAB0AC
+R09,L + CA2,50,88.0,False,True,True,number,3,L + CA2,#72B7B2
+R10,L + CA2 + CA8M2 + Spinel,34,66.0,False,True,True,number,4,L + CA2 + CA8M2 + Spinel,#EECA3B
+R11,L + CA8M2 + Corundum + Spinel,29,56.0,False,True,True,number,5,L + CA8M2 + Corundum + Spinel,#A0CBE8
+R12,L + Corundum + Spinel,14,26.0,False,True,True,number,6,L + Corundum + Spinel,#FFBE7D
+R13,L + CA2 + CA6,14,24.0,False,True,True,number,7,L + CA2 + CA6,#8CD17D
+R14,L + CA6 + Corundum,14,23.0,False,True,True,number,8,L + CA6 + Corundum,#B6992D
+R15,L + C2A14M2 + CA6 + Corundum,12,22.0,False,True,True,number,9,L + C2A14M2 + CA6 + Corundum,#499894
+R16,L + C2A14M2 + CA6,11,20.0,False,True,True,number,10,L + C2A14M2 + CA6,#4C78A8
+R17,L + CA2 + CA8M2,11,20.0,False,True,True,number,11,L + CA2 + CA8M2,#F58518
+R18,L + C2A14M2 + CA2 + CA6,11,20.0,False,True,True,number,12,L + C2A14M2 + CA2 + CA6,#54A24B
+R19,L + C2A14M2 + CA8M2 + Corundum,11,20.0,False,True,True,number,13,L + C2A14M2 + CA8M2 + Corundum,#E45756
+R20,L + C2A14M2 + CA8M2,10,18.0,False,True,True,number,14,L + C2A14M2 + CA8M2,#B279A2
+R21,L + C2A14M2 + CA2 + CA8M2,9,16.0,True,False,True,number,15,L + C2A14M2 + CA2 + CA8M2,#D9D9D9
+R22,L + CA6,7,12.0,True,False,True,number,16,L + CA6,#D9D9D9
+R23,L + Corundum,3,4.0,True,False,True,number,17,L + Corundum,#D9D9D9
+R24,L + CA8M2,3,2.0,True,False,True,number,18,L + CA8M2,#D9D9D9

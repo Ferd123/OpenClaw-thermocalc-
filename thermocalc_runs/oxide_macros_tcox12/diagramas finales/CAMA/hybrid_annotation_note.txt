@@ -1,0 +1,1 @@
+Hybrid annotation note for CAMA: region logic, triangulation, assemblage classification, EXP boundaries, and XY continuous render were kept unchanged; only annotation/layout were refined.
