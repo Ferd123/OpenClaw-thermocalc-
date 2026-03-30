@@ -1,0 +1,4 @@
+Render note: the final continuous fill was resolved in Cartesian XY coordinates instead of direct mpltern tripcolor.
+Reason: mpltern is useful for ternary orientation and annotation, but direct tripcolor with a Cartesian triangulation proved fragile.
+Therefore, classification, triangulation, and continuous fill are preserved exactly as built, while only the render layer uses robust XY polygon filling.
+The EXP boundaries are projected consistently to the same XY ternary frame and overplotted as the authoritative phase-boundary geometry.
