@@ -1,0 +1,4 @@
+These comparison plots use a common normalized CAMA base: CaO*, MgO*, Al2O3* = 100 wt.% after renormalizing only the three base oxides.
+Therefore, axes do not represent total real-system composition; they represent projection on the CaO–MgO–Al2O3 subspace.
+The fully liquid field overlay uses modal L triangles from the grid-based region reconstruction.
+The liquidus boundary overlay uses triangles at the L / L+solid transition in the projected grid.
