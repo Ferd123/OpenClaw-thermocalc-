@@ -1,19 +1,19 @@
-19:26:46,509 [main] INFO  CalculationEngine: Starting Thermo-Calc 2025a, Java-version: 21.0.2
-19:26:46,633 [main] INFO  SoftwareLicenseHub: Database directory: C:\Program Files\Thermo-Calc\2025a\data
-19:26:47,394 [main] INFO  LogManager: Selected log level: INFO
-19:26:47,410 [Thread-4] INFO  TCMessagingWorker: Starting messaging-worker with arguments: C:\Program Files\Thermo-Calc\2025a\bundled_jre\bin\java --add-opens=java.desktop/java.awt=ALL-UNNAMED --add-opens=java.desktop/java.awt.font=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.text=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED -jar japi-tc-2025.1.35139-246.jar tc-messaging-worker not-manual LOG_LEVEL=INFO
-19:26:47,410 [Thread-4] INFO  TCMessagingWorker: Started messaging-worker pid: 36436
-19:26:47,465 [Thread-10] INFO  ProcessExecutorAllocator: Starting process executor allocator
-19:26:48,552 [AWT-EventQueue-0] INFO  UniteApplicationView: Initialization completed
-19:26:48,626 [AWT-EventQueue-0] INFO  UniteApplication: Application main
-19:26:48,628 [AWT-EventQueue-0] INFO  UniteApplication: OS name: Windows 11
-19:26:48,628 [AWT-EventQueue-0] INFO  UniteApplication: OS architecture: amd64
-19:26:48,628 [AWT-EventQueue-0] INFO  UniteApplication: OS version: 10.0
-19:26:48,628 [AWT-EventQueue-0] INFO  UniteApplication: Java version: 21.0.2
-19:26:48,628 [AWT-EventQueue-0] INFO  UniteApplication: Thermo-Calc directory: C:\Program Files\Thermo-Calc\2025a
-19:26:48,628 [AWT-EventQueue-0] INFO  UniteApplication: Temporary directory: C:\Users\ELANOR\AppData\Local\Temp\thermo-calc_1774834006493
-19:26:48,628 [AWT-EventQueue-0] INFO  UniteApplication: Database directory: C:\Program Files\Thermo-Calc\2025a\data
-19:26:48,628 [AWT-EventQueue-0] INFO  UniteApplication: Calculation engine build number: 35139-245
-19:26:48,628 [AWT-EventQueue-0] INFO  UniteApplication: Starting up
-19:26:52,649 [Thread-4] INFO  TCMessaging: System for parallel property model calculations is active
-19:26:55,129 [Thread-15] INFO  ConsolePane: Thermo-Calc completed normally
+19:29:55,626 [main] INFO  CalculationEngine: Starting Thermo-Calc 2025a, Java-version: 21.0.2
+19:29:55,751 [main] INFO  SoftwareLicenseHub: Database directory: C:\Program Files\Thermo-Calc\2025a\data
+19:29:56,394 [main] INFO  LogManager: Selected log level: INFO
+19:29:56,398 [Thread-4] INFO  TCMessagingWorker: Starting messaging-worker with arguments: C:\Program Files\Thermo-Calc\2025a\bundled_jre\bin\java --add-opens=java.desktop/java.awt=ALL-UNNAMED --add-opens=java.desktop/java.awt.font=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.text=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED -jar japi-tc-2025.1.35139-246.jar tc-messaging-worker not-manual LOG_LEVEL=INFO
+19:29:56,409 [Thread-4] INFO  TCMessagingWorker: Started messaging-worker pid: 8288
+19:29:56,444 [Thread-10] INFO  ProcessExecutorAllocator: Starting process executor allocator
+19:29:57,183 [AWT-EventQueue-0] INFO  UniteApplicationView: Initialization completed
+19:29:57,235 [AWT-EventQueue-0] INFO  UniteApplication: Application main
+19:29:57,235 [AWT-EventQueue-0] INFO  UniteApplication: OS name: Windows 11
+19:29:57,235 [AWT-EventQueue-0] INFO  UniteApplication: OS architecture: amd64
+19:29:57,235 [AWT-EventQueue-0] INFO  UniteApplication: OS version: 10.0
+19:29:57,235 [AWT-EventQueue-0] INFO  UniteApplication: Java version: 21.0.2
+19:29:57,235 [AWT-EventQueue-0] INFO  UniteApplication: Thermo-Calc directory: C:\Program Files\Thermo-Calc\2025a
+19:29:57,235 [AWT-EventQueue-0] INFO  UniteApplication: Temporary directory: C:\Users\ELANOR\AppData\Local\Temp\thermo-calc_1774834195626
+19:29:57,235 [AWT-EventQueue-0] INFO  UniteApplication: Database directory: C:\Program Files\Thermo-Calc\2025a\data
+19:29:57,235 [AWT-EventQueue-0] INFO  UniteApplication: Calculation engine build number: 35139-245
+19:29:57,235 [AWT-EventQueue-0] INFO  UniteApplication: Starting up
+19:30:01,622 [Thread-4] INFO  TCMessaging: System for parallel property model calculations is active
+19:30:03,342 [Thread-15] INFO  ConsolePane: Thermo-Calc completed normally
