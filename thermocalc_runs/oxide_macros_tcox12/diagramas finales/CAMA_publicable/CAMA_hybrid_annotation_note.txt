@@ -1,0 +1,5 @@
+Hybrid annotation note: region logic, triangulation, assemblage classification, EXP boundaries, and XY continuous render were left unchanged.
+This final iteration only modifies annotation strategy and layout.
+Large and medium regions keep direct text labels when legible.
+Small, compact, or top-saturated regions are annotated numerically and resolved in a compact side table.
+This reduces label congestion near the Al2O3-rich apex without changing physical/geometric interpretation.

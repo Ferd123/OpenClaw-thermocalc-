@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from matplotlib.lines import Line2D
-from matplotlib.patches import Polygon
 from matplotlib.collections import PolyCollection
 from matplotlib.tri import Triangulation
 
@@ -129,13 +128,6 @@ def ternary_to_xy(cao, mgo, al2o3):
     return x, y
 
 
-def xy_to_ternary(x, y):
-    c = y / H
-    b = x - 0.5 * c
-    a = 1.0 - b - c
-    return a * 100.0, b * 100.0, c * 100.0
-
-
 def parse_grid() -> pd.DataFrame:
     rows = parse_dat(GRID_DAT)
     data = []
@@ -231,8 +223,39 @@ def build_regions(df: pd.DataFrame):
     reg['n_grid_points'] = reg['assemblage'].map(df['assemblage'].value_counts()).fillna(0).astype(int)
     reg['is_minor'] = (reg['n_triangles'] < MIN_REGION_TRIANGLES) | (reg['n_grid_points'] < MIN_REGION_POINTS)
     reg['show_in_legend'] = ~reg['is_minor']
-    reg['has_internal_label'] = (~reg['is_minor']) & (reg['n_triangles'] >= MIN_REGION_TRIANGLES * 2)
+    reg['has_internal_label'] = False
+    reg['label_mode'] = 'none'
+    reg['numeric_id'] = pd.NA
+    reg['label_text'] = reg['assemblage']
     return tri, tri_df, reg
+
+
+def classify_labels(reg: pd.DataFrame) -> pd.DataFrame:
+    reg = reg.copy()
+    area_q66 = reg['approx_area'].quantile(0.66) if len(reg) > 1 else reg['approx_area'].iloc[0]
+    area_q33 = reg['approx_area'].quantile(0.33) if len(reg) > 1 else reg['approx_area'].iloc[0]
+    numeric_counter = 1
+    for idx, row in reg.iterrows():
+        x, y = row['cx'], row['cy']
+        top_zone = y > 0.72 * H
+        very_small = row['approx_area'] < max(MIN_REGION_TRIANGLES, area_q33)
+        medium = row['approx_area'] >= area_q33 and row['approx_area'] < area_q66
+        large = row['approx_area'] >= area_q66
+        if large and not top_zone:
+            reg.at[idx, 'label_mode'] = 'text'
+            reg.at[idx, 'has_internal_label'] = True
+        elif medium and not top_zone:
+            reg.at[idx, 'label_mode'] = 'text'
+            reg.at[idx, 'has_internal_label'] = True
+        elif row['is_minor'] or top_zone or very_small:
+            reg.at[idx, 'label_mode'] = 'number'
+            reg.at[idx, 'numeric_id'] = numeric_counter
+            reg.at[idx, 'has_internal_label'] = True
+            numeric_counter += 1
+        else:
+            reg.at[idx, 'label_mode'] = 'none'
+            reg.at[idx, 'has_internal_label'] = False
+    return reg
 
 
 def build_color_map(reg: pd.DataFrame):
@@ -244,7 +267,7 @@ def build_color_map(reg: pd.DataFrame):
 def setup_xy_axes(fig):
     ax = fig.add_subplot(111)
     ax.set_aspect('equal')
-    ax.set_xlim(-0.06, 1.30)
+    ax.set_xlim(-0.06, 1.50)
     ax.set_ylim(-0.05, H + 0.08)
     ax.axis('off')
     return ax
@@ -298,74 +321,100 @@ def build_region_collection(tri, tri_df, reg, color_map):
     return PolyCollection(polys, facecolors=colors, edgecolors='none', linewidths=0.0, alpha=1.0, zorder=1)
 
 
-def draw_internal_labels(ax, reg):
+def draw_labels(ax, reg):
     for _, row in reg.iterrows():
         if not row['has_internal_label']:
             continue
-        ax.text(row['cx'], row['cy'], row['assemblage'], fontsize=6.2, ha='center', va='center',
-                bbox=dict(facecolor='white', alpha=0.72, edgecolor='none', pad=0.25), zorder=6)
+        if row['label_mode'] == 'text':
+            ax.text(row['cx'], row['cy'], row['label_text'], fontsize=6.0, ha='center', va='center',
+                    bbox=dict(facecolor='white', alpha=0.74, edgecolor='none', pad=0.25), zorder=6)
+        elif row['label_mode'] == 'number' and pd.notna(row['numeric_id']):
+            x = row['cx']
+            y = row['cy']
+            if y > 0.72 * H:
+                x += 0.02 if x < 0.5 else -0.02
+                y -= 0.01
+            ax.text(x, y, str(int(row['numeric_id'])), fontsize=6.4, ha='center', va='center',
+                    bbox=dict(facecolor='white', alpha=0.82, edgecolor='black', linewidth=0.2, boxstyle='round,pad=0.15'), zorder=7)
 
 
-def plot_main(df, tri, tri_df, reg, exp_blocks, color_map):
-    fig = plt.figure(figsize=(SINGLE_COLUMN_MM * MM_TO_INCH * 1.7, SINGLE_COLUMN_MM * MM_TO_INCH * 1.2))
-    ax = setup_xy_axes(fig)
-    draw_triangle_frame(ax)
-    ax.add_collection(build_region_collection(tri, tri_df, reg, color_map))
-    draw_exp_boundaries(ax, exp_blocks)
-    draw_internal_labels(ax, reg)
+def draw_side_tables(fig, reg, color_map):
     legend_rows = reg[reg['show_in_legend']].head(TOP_LEGEND_FIELDS)
     handles = [Line2D([0], [0], color=color_map[r['assemblage']], lw=4, label=r['assemblage']) for _, r in legend_rows.iterrows()]
     if reg['is_minor'].any():
         handles.append(Line2D([0], [0], color=color_map['Other minor assemblages'], lw=4, label='Other minor assemblages'))
-    fig.legend(handles=handles, loc='center left', bbox_to_anchor=(0.87, 0.5), frameon=True, title='Phase fields')
-    ax.set_title('CAMA final ternary phase diagram\nEXP boundaries + grid-based continuous phase fields', pad=10)
-    fig.savefig(OUT_DIR / 'CAMA_final_main.png', bbox_inches='tight')
-    fig.savefig(OUT_DIR / 'CAMA_final_main.svg', bbox_inches='tight')
+    fig.legend(handles=handles, loc='upper left', bbox_to_anchor=(0.79, 0.92), frameon=True, title='Main phase fields')
+    numbered = reg[reg['label_mode'] == 'number'].sort_values('numeric_id')
+    if len(numbered) > 0:
+        lines = ['Numbered minor / compact fields']
+        for _, row in numbered.iterrows():
+            lines.append(f"{int(row['numeric_id'])} -> {row['assemblage']}")
+        fig.text(0.79, 0.50, '\n'.join(lines), ha='left', va='top', fontsize=7,
+                 bbox=dict(facecolor='white', edgecolor='0.6', boxstyle='round,pad=0.35'))
+
+
+def plot_main(df, tri, tri_df, reg, exp_blocks, color_map):
+    fig = plt.figure(figsize=(SINGLE_COLUMN_MM * MM_TO_INCH * 1.95, SINGLE_COLUMN_MM * MM_TO_INCH * 1.25))
+    ax = setup_xy_axes(fig)
+    draw_triangle_frame(ax)
+    ax.add_collection(build_region_collection(tri, tri_df, reg, color_map))
+    draw_exp_boundaries(ax, exp_blocks)
+    draw_labels(ax, reg)
+    draw_side_tables(fig, reg, color_map)
+    ax.set_title('CAMA final ternary phase diagram', pad=8)
+    fig.savefig(OUT_DIR / 'CAMA_final_main_hybrid_labels.png', bbox_inches='tight')
+    fig.savefig(OUT_DIR / 'CAMA_final_main_hybrid_labels.svg', bbox_inches='tight')
     plt.close(fig)
 
 
 def plot_control(df, tri, tri_df, reg, exp_blocks, color_map):
-    fig = plt.figure(figsize=(SINGLE_COLUMN_MM * MM_TO_INCH * 1.7, SINGLE_COLUMN_MM * MM_TO_INCH * 1.2))
+    fig = plt.figure(figsize=(SINGLE_COLUMN_MM * MM_TO_INCH * 1.95, SINGLE_COLUMN_MM * MM_TO_INCH * 1.25))
     ax = setup_xy_axes(fig)
     draw_triangle_frame(ax)
     ax.add_collection(build_region_collection(tri, tri_df, reg, color_map))
-    ax.scatter(df['x'], df['y'], s=4, color='black', alpha=0.15, zorder=2)
+    ax.scatter(df['x'], df['y'], s=4, color='black', alpha=0.12, zorder=2)
     draw_exp_boundaries(ax, exp_blocks)
-    ax.set_title('CAMA control figure\ncontinuous region fill rendered in XY + light grid sampling overlay', pad=10)
-    fig.savefig(OUT_DIR / 'CAMA_final_control.png', bbox_inches='tight')
+    for _, row in reg.iterrows():
+        if row['label_mode'] == 'text':
+            ax.text(row['cx'], row['cy'], 'T', fontsize=7, ha='center', va='center', color='black', zorder=7)
+        elif row['label_mode'] == 'number' and pd.notna(row['numeric_id']):
+            ax.text(row['cx'], row['cy'], f"N{int(row['numeric_id'])}", fontsize=6.5, ha='center', va='center', color='black', zorder=7)
+    ax.set_title('CAMA control figure: hybrid annotation modes', pad=8)
+    fig.savefig(OUT_DIR / 'CAMA_final_control_hybrid.png', bbox_inches='tight')
     plt.close(fig)
 
 
 def export_region_table(reg, color_map):
-    out = reg[['region_id', 'assemblage', 'n_grid_points', 'approx_area', 'is_minor', 'show_in_legend', 'has_internal_label']].copy()
-    out['color'] = out['assemblage'].map(lambda x: color_map[x] if not out.loc[out['assemblage'] == x, 'is_minor'].iloc[0] else color_map['Other minor assemblages'])
-    out.to_csv(OUT_DIR / 'CAMA_region_summary.csv', index=False)
+    out = reg[['region_id', 'assemblage', 'n_grid_points', 'approx_area', 'is_minor', 'show_in_legend', 'has_internal_label', 'label_mode', 'numeric_id', 'label_text']].copy()
+    out['color'] = out.apply(lambda r: color_map[r['assemblage']] if not r['is_minor'] else color_map['Other minor assemblages'], axis=1)
+    out.to_csv(OUT_DIR / 'CAMA_region_summary_hybrid.csv', index=False)
 
 
 def write_note():
     note = (
-        'Render note: the final continuous fill was resolved in Cartesian XY coordinates instead of direct mpltern tripcolor.\n'
-        'Reason: mpltern is useful for ternary orientation and annotation, but direct tripcolor with a Cartesian triangulation proved fragile.\n'
-        'Therefore, classification, triangulation, and continuous fill are preserved exactly as built, while only the render layer uses robust XY polygon filling.\n'
-        'The EXP boundaries are projected consistently to the same XY ternary frame and overplotted as the authoritative phase-boundary geometry.\n'
+        'Hybrid annotation note: region logic, triangulation, assemblage classification, EXP boundaries, and XY continuous render were left unchanged.\n'
+        'This final iteration only modifies annotation strategy and layout.\n'
+        'Large and medium regions keep direct text labels when legible.\n'
+        'Small, compact, or top-saturated regions are annotated numerically and resolved in a compact side table.\n'
+        'This reduces label congestion near the Al2O3-rich apex without changing physical/geometric interpretation.\n'
     )
-    (OUT_DIR / 'CAMA_render_note.txt').write_text(note, encoding='utf-8')
+    (OUT_DIR / 'CAMA_hybrid_annotation_note.txt').write_text(note, encoding='utf-8')
 
 
 def main():
     df = parse_grid()
     exp_blocks, _ = parse_exp(EXP_PATH)
     tri, tri_df, reg = build_regions(df)
+    reg = classify_labels(reg)
     color_map = build_color_map(reg)
     plot_main(df, tri, tri_df, reg, exp_blocks, color_map)
     plot_control(df, tri, tri_df, reg, exp_blocks, color_map)
     export_region_table(reg, color_map)
     write_note()
-    print(f'OK main: {OUT_DIR / "CAMA_final_main.png"}')
-    print(f'OK control: {OUT_DIR / "CAMA_final_control.png"}')
-    print(f'OK table: {OUT_DIR / "CAMA_region_summary.csv"}')
-    print(f'OK note: {OUT_DIR / "CAMA_render_note.txt"}')
-    print(f'POINTS={len(df)} REGIONS={len(reg)}')
+    print(f'OK main: {OUT_DIR / "CAMA_final_main_hybrid_labels.png"}')
+    print(f'OK control: {OUT_DIR / "CAMA_final_control_hybrid.png"}')
+    print(f'OK table: {OUT_DIR / "CAMA_region_summary_hybrid.csv"}')
+    print(f'OK note: {OUT_DIR / "CAMA_hybrid_annotation_note.txt"}')
 
 
 if __name__ == '__main__':
