@@ -1,0 +1,4 @@
+The renormalization and comparison logic were preserved exactly: CaO*, MgO*, Al2O3* are computed by renormalizing only the CAMA base oxides to 100 wt.%.
+Visual refinements only: larger ternary footprint, tighter layout, clearer contour hierarchy, softer liquid fill, and smoother liquidus presentation.
+A mild geometric smoothing (Chaikin, 2 iterations) was applied only to the liquidus display curves to reduce discretization jaggedness; the underlying physics and classification were not changed.
+Quantitative comparison includes projected liquid-field area, centroid on normalized basis, delta area vs base, centroid shift vs base, and simple overlap/gained/lost area proxies vs the base system.
